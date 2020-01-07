@@ -1,0 +1,17 @@
+[package]
+name = "wispha"
+version = "0.1.0"
+authors = ["Evian-Zhang <evianzhang1999@163.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "libwispha"
+path = "src/lib.rs"
+
+[[bin]]
+name = "wispha"
+path = "src/bin/main.rs"
+
+[dependencies]
