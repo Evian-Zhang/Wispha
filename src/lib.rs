@@ -1,3 +1,6 @@
+pub mod core;
+pub mod auxiliary;
+
 #[cfg(test)]
 mod tests {
     #[test]
