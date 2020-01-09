@@ -1,10 +1,10 @@
 use std::thread;
 use std::sync::{mpsc, Arc, Mutex};
-use std::error::Error;
+use std::error;
 use std::fmt;
 use std::fmt::{Display, Formatter, Debug};
 
-type Result<T> = std::result::Result<T, ThreadPoolError>;
+type Result<T> = std::result::Result<T, Error>;
 
 type Job = Box<dyn FnBox + Send + 'static>;
 
@@ -91,7 +91,7 @@ impl Worker {
                     }
                 }
             }
-        }).or(Err(ThreadPoolError::NoEnoughThread))?;
+        }).or(Err(Error::NoEnoughThread))?;
 
         Ok(Worker {
             thread: Some(thread),
@@ -100,16 +100,16 @@ impl Worker {
 }
 
 #[derive(Debug)]
-pub enum ThreadPoolError {
+pub enum Error {
     /// Available threads are not enough
     NoEnoughThread,
 }
 
-impl Error for ThreadPoolError {}
+impl error::Error for Error {}
 
-impl Display for ThreadPoolError {
+impl Display for Error {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        use ThreadPoolError::*;
+        use Error::*;
         let message = match &self {
             NoEnoughThread => {
                 format!("No enough thread.")

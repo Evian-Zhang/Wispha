@@ -15,3 +15,5 @@ name = "wispha"
 path = "src/bin/main.rs"
 
 [dependencies]
+serde = { version = "*", features = ["derive"] }
+chrono = "*"
