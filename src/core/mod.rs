@@ -1,19 +1,32 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex, Weak};
+use std::hash::{Hash, Hasher};
 
 use chrono::{DateTime, Utc};
 use serde::ser::{Serializer, SerializeStruct};
 use serde::{Serialize, Deserialize};
 
+type NodePathComponents = Vec<String>;
+
+#[derive(Clone)]
+pub struct NodePath<'a> {
+    pub components: NodePathComponents,
+    pub tree: &'a Tree<'a>,
+}
+
+impl<'a> Hash for NodePath<'a> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.components.hash(state);
+    }
+}
+
 /// The properties that are related to the node itself, but not the truly valuable information.
 #[derive(Clone, Serialize)]
-pub struct NodeProperties {
+pub struct NodeProperties<'a> {
     pub name: String,
     #[serde(skip)]
-    pub record_file: PathBuf,
-    #[serde(skip)]
-    tree: Weak<Mutex<Tree>>,
+    pub record_file: NodePath<'a>,
 }
 
 pub enum PropertyType {
@@ -62,7 +75,7 @@ mod date_format {
 
 /// Direct node structure, i.e. the node that truly has valuable values
 #[derive(Serialize)]
-pub struct DirectNode {
+pub struct DirectNode<'a> {
     /// If a Wispha node doesn't have parent (for example, `root` in a Wispha tree), this field is `None`
     pub parent: Option<PathBuf>,
 
@@ -72,7 +85,7 @@ pub struct DirectNode {
 
     /// The properties that are related to the node itself, but not the truly valuable information.
     #[serde(flatten)]
-    pub node_properties: NodeProperties,
+    pub node_properties: NodeProperties<'a>,
 
     /// Customized properties in a direct node, supporting `String`, `Date`, `Int` and `Double`.
     #[serde(flatten)]
@@ -80,21 +93,21 @@ pub struct DirectNode {
 }
 
 #[derive(Serialize)]
-pub struct LinkNode {
+pub struct LinkNode<'a> {
     /// The properties that are related to the node itself, but not the truly valuable information.
     #[serde(flatten)]
-    pub node_properties: NodeProperties,
+    pub node_properties: NodeProperties<'a>,
 }
 
 /// Wispha node structure
 #[derive(Serialize)]
-pub enum Node {
-    Direct(DirectNode),
-    Link(LinkNode),
+pub enum Node<'a> {
+    Direct(DirectNode<'a>),
+    Link(LinkNode<'a>),
 }
 
-impl Node {
-    pub fn node_properties(&self) -> NodeProperties {
+impl<'a> Node<'a> {
+    pub fn node_properties(&'a self) -> NodeProperties {
         use Node::*;
         match &self {
             Direct(direct_node) => direct_node.node_properties.clone(),
@@ -124,9 +137,9 @@ impl Node {
 //}
 
 /// Wispha tree structure
-pub struct Tree {
-    pub nodes: HashMap<PathBuf, Arc<Mutex<Node>>>,
-    pub root: Weak<Mutex<Node>>,
+pub struct Tree<'a> {
+    pub nodes: HashMap<NodePathComponents, Arc<Mutex<Node<'a>>>>,
+    pub root: Weak<Mutex<Node<'a>>>,
     pub custom_properties: HashMap<String, PropertyType>,
 }
 
