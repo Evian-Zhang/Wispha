@@ -13,20 +13,20 @@ use serde::export::fmt::Error;
 type NodePathComponents = Vec<String>;
 
 #[derive(Clone, Debug)]
-pub struct NodePath<'a> {
+pub struct NodePath {
     pub components: NodePathComponents,
-    pub tree: &'a Tree<'a>,
+    pub tree: Weak<Mutex<Tree>>
 }
 
-impl<'a> NodePath<'a> {
+impl NodePath {
     pub fn to_string(&self) -> String {
         // TODO: add a singleton String "/" instead of creating a String every time
         "/".to_owned() + &self.components.join("/")
     }
 }
 
-impl Display for NodePath<'_> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+impl Display for NodePath {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         write!(f, "{}", self.to_string())
     }
 }
@@ -41,10 +41,10 @@ impl Display for NodePath<'_> {
 
 /// The properties that are related to the node itself, but not the truly valuable information.
 #[derive(Clone, Serialize, Debug)]
-pub struct NodeProperties<'a> {
+pub struct NodeProperties {
     pub name: String,
     #[serde(skip)]
-    pub record_file: NodePath<'a>,
+    pub record_file: NodePath,
 }
 
 #[derive(Debug)]
@@ -94,21 +94,21 @@ mod date_format {
 
 /// Direct node structure, i.e. the node that truly has valuable values
 #[derive(Debug)]
-pub struct DirectNode<'a> {
+pub struct DirectNode {
     /// If a Wispha node doesn't have parent (for example, `root` in a Wispha tree), this field is `None`
-    pub parent: Option<NodePath<'a>>,
+    pub parent: Option<NodePath>,
 
     /// If a Wispha node doesn't have any child, this field is an vector with length 0
-    pub children: Vec<NodePath<'a>>,
+    pub children: Vec<NodePath>,
 
     /// The properties that are related to the node itself, but not the truly valuable information.
-    pub node_properties: NodeProperties<'a>,
+    pub node_properties: NodeProperties,
 
     /// Customized properties in a direct node, supporting `String`, `Date`, `Int` and `Double`.
     pub properties: HashMap<String, TypedProperty>,
 }
 
-impl<'a> Serialize for DirectNode<'a> {
+impl Serialize for DirectNode {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where
             S: Serializer {
@@ -119,7 +119,7 @@ impl<'a> Serialize for DirectNode<'a> {
             map.serialize_entry(property, value)?;
         }
         if !self.children.is_empty() {
-            let children: Vec<Arc<Mutex<Node>>> = self.children.iter().map(|node_path| node_path.tree.get_node(node_path).unwrap()).collect();
+            let children: Vec<Arc<Mutex<Node>>> = self.children.iter().map(|node_path| node_path.tree.upgrade().unwrap().lock().unwrap().get_node(node_path).unwrap()).collect();
             map.serialize_entry("children", &children)?;
         }
         map.end()
@@ -127,21 +127,21 @@ impl<'a> Serialize for DirectNode<'a> {
 }
 
 #[derive(Serialize, Debug)]
-pub struct LinkNode<'a> {
+pub struct LinkNode {
     /// The properties that are related to the node itself, but not the truly valuable information.
     #[serde(flatten)]
-    pub node_properties: NodeProperties<'a>,
+    pub node_properties: NodeProperties,
 }
 
 /// Wispha node structure
 #[derive(Serialize, Debug)]
-pub enum Node<'a> {
-    Direct(DirectNode<'a>),
-    Link(LinkNode<'a>),
+pub enum Node {
+    Direct(DirectNode),
+    Link(LinkNode),
 }
 
-impl<'a> Node<'a> {
-    pub fn node_properties(&'a self) -> NodeProperties {
+impl Node {
+    pub fn node_properties(&self) -> NodeProperties {
         use Node::*;
         match &self {
             Direct(direct_node) => direct_node.node_properties.clone(),
@@ -152,13 +152,13 @@ impl<'a> Node<'a> {
 
 /// Wispha tree structure
 #[derive(Debug)]
-pub struct Tree<'a> {
-    pub nodes: HashMap<NodePathComponents, Arc<Mutex<Node<'a>>>>,
-    pub root: Weak<Mutex<Node<'a>>>,
+pub struct Tree {
+    pub nodes: HashMap<NodePathComponents, Arc<Mutex<Node>>>,
+    pub root: Weak<Mutex<Node>>,
     pub custom_properties: HashMap<String, PropertyType>,
 }
 
-impl Serialize for Tree<'_> {
+impl Serialize for Tree {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where
             S: Serializer {
@@ -170,8 +170,8 @@ impl Serialize for Tree<'_> {
     }
 }
 
-impl<'a> Tree<'a> {
-    pub fn get_node(&self, components: &NodePath) -> Option<Arc<Mutex<Node<'a>>>> {
+impl Tree {
+    pub fn get_node(&self, components: &NodePath) -> Option<Arc<Mutex<Node>>> {
         self.nodes.get(&components.components)
             .map(|node_ref| Arc::clone(node_ref))
     }
