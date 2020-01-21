@@ -1,8 +1,8 @@
-use std::cell::RefCell;
-use std::rc::Rc;
+use std::error;
+use std::fmt;
 
 use serde::ser::{Serializer, SerializeMap};
-use serde::{Serialize, Deserialize};
+use serde::Serialize;
 
 use crate::strings::*;
 use crate::core::structs::*;
@@ -33,7 +33,14 @@ impl Serialize for DirectNode {
             map.serialize_entry(property, value)?;
         }
         if !self.children.is_empty() {
-            let children: Vec<Rc<RefCell<Node>>> = self.children.iter().map(|node_path| node_path.tree.upgrade().unwrap().borrow().get_node(node_path).unwrap()).collect();
+            let children = self.children.iter()
+                               .map(|node_path| -> Result<_, S::Error> {
+                                   Ok(node_path.tree.upgrade().unwrap().borrow()
+                                               .get_node(node_path)
+                                               .ok_or(Error::PathNotFound(node_path.clone()))
+                                               .map_err(serde::ser::Error::custom)?)
+                               })
+                               .collect::<Result<Vec<_>, S::Error>>()?;
             map.serialize_entry(CHILDREN, &children)?;
         }
         map.end()
@@ -61,5 +68,22 @@ impl Serialize for Tree {
         } else {
             serializer.serialize_none()
         }
+    }
+}
+
+#[derive(Debug)]
+enum Error {
+    PathNotFound(NodePath)
+}
+
+impl error::Error for Error {}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        use Error::*;
+        let message = match &self {
+            PathNotFound(path) => format!("Path {} not found.", path)
+        };
+        write!(f, "{}", message)
     }
 }

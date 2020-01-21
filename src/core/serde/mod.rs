@@ -1,4 +1,5 @@
 mod ser;
+mod de;
 
 // Auxiliary module for serde with chrono
 mod date_format {
