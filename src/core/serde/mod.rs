@@ -2,7 +2,7 @@ mod ser;
 mod de;
 
 // Auxiliary module for serde with chrono
-mod date_format {
+pub(super) mod date_format {
     use chrono::{DateTime, Utc, TimeZone};
     use serde::{self, Deserialize, Serializer, Deserializer};
 

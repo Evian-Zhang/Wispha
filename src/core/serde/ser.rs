@@ -7,20 +7,6 @@ use serde::Serialize;
 use crate::strings::*;
 use crate::core::structs::*;
 
-impl Serialize for TypedProperty {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer {
-        use TypedProperty::*;
-        match &self {
-            String(string) => string.serialize(serializer),
-            Date(date) => super::date_format::serialize(date, serializer),
-            Int(int) => int.serialize(serializer),
-            Double(double) => double.serialize(serializer),
-        }
-    }
-}
-
 impl Serialize for DirectNode {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where
@@ -44,18 +30,6 @@ impl Serialize for DirectNode {
             map.serialize_entry(CHILDREN, &children)?;
         }
         map.end()
-    }
-}
-
-impl Serialize for Node {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer {
-        use Node::*;
-        match &self {
-            Direct(direct_node) => direct_node.serialize(serializer),
-            Link(link_node) => link_node.serialize(serializer)
-        }
     }
 }
 

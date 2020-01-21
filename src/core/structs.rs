@@ -1,8 +1,7 @@
 use std::collections::HashMap;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
-use std::fmt;
-use std::fmt::Display;
+use std::fmt::{self, Display};
 
 use chrono::{DateTime, Utc};
 use serde::{Serialize, Deserialize};
@@ -11,7 +10,7 @@ use crate::strings::*;
 
 type NodePathComponents = Vec<String>;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct NodePath {
     pub components: NodePathComponents,
     pub tree: Weak<RefCell<Tree>>
@@ -30,7 +29,7 @@ impl Display for NodePath {
 }
 
 /// The properties that are related to the node itself, but not the truly valuable information.
-#[derive(Clone, Serialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct NodeProperties {
     pub name: String,
     #[serde(skip)]
@@ -46,10 +45,12 @@ pub enum PropertyType {
 }
 
 /// The property with type. Support `String`, `Date` (stores in UTC), `Int` (with the same range as `isize` of Rust), `Double` (with the same range and precision as `f64` of Rust)
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
 pub enum TypedProperty {
     String(String),
 
+    #[serde(with = "super::serde::date_format")]
     Date(DateTime<Utc>),
 
     /// property with `Int` type, with the same range as `isize` of Rust
@@ -83,7 +84,8 @@ pub struct LinkNode {
 }
 
 /// Wispha node structure
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
+#[serde(untagged)]
 pub enum Node {
     Direct(DirectNode),
     Link(LinkNode),
