@@ -1,5 +1,6 @@
 pub mod core;
 pub mod auxiliary;
+pub(crate) mod strings;
 
 #[cfg(test)]
 mod tests {
