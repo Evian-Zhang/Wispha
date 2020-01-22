@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 use std::fmt::{self, Display};
+use std::path::PathBuf;
 
 use chrono::{DateTime, Utc};
 use serde::{Serialize, Deserialize};
@@ -17,8 +18,40 @@ pub struct NodePath {
 }
 
 impl NodePath {
+    pub(super) fn new(tree: &Weak<RefCell<Tree>>) -> NodePath {
+        NodePath {
+            components: vec![],
+            tree: tree.clone()
+        }
+    }
+
     pub fn to_string(&self) -> String {
         format!("{root}{components}", root=ROOT, components=self.components.join(PATH_SEPARATOR))
+    }
+
+    pub fn push(&self, component: String) -> NodePath {
+        let mut components = self.components.clone();
+        components.push(component);
+        NodePath {
+            components,
+            tree: self.tree.clone()
+        }
+    }
+
+    pub fn parent(&self) -> Option<NodePath> {
+        let mut components = self.components.clone();
+        if let Some(_) = components.pop() {
+            Some(NodePath {
+                components,
+                tree: self.tree.clone()
+            })
+        } else {
+            None
+        }
+    }
+
+    pub fn name(&self) -> Option<String> {
+        self.components.last().cloned()
     }
 }
 
@@ -33,7 +66,7 @@ impl Display for NodePath {
 pub struct NodeProperties {
     pub name: String,
     #[serde(skip)]
-    pub record_file: NodePath,
+    pub record_file: PathBuf,
 }
 
 #[derive(Debug)]
@@ -101,12 +134,18 @@ impl Node {
     }
 }
 
+#[derive(Debug)]
+pub struct TreeConfig {
+    pub custom_properties: HashMap<String, PropertyType>,
+    pub project_name: String,
+}
+
 /// Wispha tree structure
 #[derive(Debug)]
 pub struct Tree {
     pub nodes: HashMap<NodePathComponents, Rc<RefCell<Node>>>,
     pub root: Weak<RefCell<Node>>,
-    pub custom_properties: HashMap<String, PropertyType>,
+    pub config: TreeConfig
 }
 
 impl Tree {
