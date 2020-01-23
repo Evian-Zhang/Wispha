@@ -69,7 +69,7 @@ pub struct NodeProperties {
     pub record_file: PathBuf,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum PropertyType {
     String,
     Date,
@@ -91,6 +91,18 @@ pub enum TypedProperty {
 
     /// property with `Double` type, with the same range and precision as `f64` of Rust
     Double(f64),
+}
+
+impl TypedProperty {
+    pub(crate) fn is_compatible(&self, property_type: &PropertyType) -> bool {
+        let self_type = match &self {
+            TypedProperty::String(_) => PropertyType::String,
+            TypedProperty::Date(_) => PropertyType::Date,
+            TypedProperty::Int(_) => PropertyType::Int,
+            TypedProperty::Double(_) => PropertyType::Double,
+        };
+        self_type == property_type
+    }
 }
 
 /// Direct node structure, i.e. the node that truly has valuable values
@@ -149,6 +161,14 @@ pub struct Tree {
 }
 
 impl Tree {
+    pub fn new(config: TreeConfig) -> Tree {
+        Tree {
+            nodes: HashMap::new(),
+            root: Weak::new(),
+            config
+        }
+    }
+
     pub fn get_node(&self, components: &NodePath) -> Option<Rc<RefCell<Node>>> {
         self.nodes.get(&components.components)
             .map(|node_ref| Rc::clone(node_ref))

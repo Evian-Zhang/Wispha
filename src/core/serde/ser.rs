@@ -3,9 +3,13 @@ use std::fmt;
 
 use serde::ser::{Serializer, SerializeMap};
 use serde::Serialize;
+use serde_json;
+use serde_yaml;
+use toml;
 
 use crate::strings::*;
 use crate::core::structs::*;
+use crate::core::serde::DataFormat;
 
 impl Serialize for DirectNode {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -45,9 +49,27 @@ impl Serialize for Tree {
     }
 }
 
+impl Tree {
+    /// Serialize the tree into a given data format
+    pub fn to_string(&self, data_format: DataFormat) -> Result<String, Error> {
+        match data_format {
+            DataFormat::Json => {
+                serde_json::to_string(&self).map_err(|error| Error::SerializeFailed(Box::new(error)))
+            },
+            DataFormat::Yaml => {
+                serde_yaml::to_string(&self).map_err(|error| Error::SerializeFailed(Box::new(error)))
+            },
+            DataFormat::Toml => {
+                toml::to_string(&self).map_err(|error| Error::SerializeFailed(Box::new(error)))
+            },
+        }
+    }
+}
+
 #[derive(Debug)]
 enum Error {
-    PathNotFound(NodePath)
+    PathNotFound(NodePath),
+    SerializeFailed(Box<dyn error::Error>)
 }
 
 impl error::Error for Error {}
@@ -56,7 +78,8 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         use Error::*;
         let message = match &self {
-            PathNotFound(path) => format!("Path {} not found.", path)
+            PathNotFound(path) => format!("Path {} not found.", path),
+            SerializeFailed(error) => format!("Serialize error: {}", error)
         };
         write!(f, "{}", message)
     }

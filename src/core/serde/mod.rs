@@ -22,3 +22,9 @@ pub(super) mod date_format {
         Utc.datetime_from_str(&s, FORMAT).map_err(serde::de::Error::custom)
     }
 }
+
+pub enum DataFormat {
+    Json,
+    Yaml,
+    Toml
+}

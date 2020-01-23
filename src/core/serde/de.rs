@@ -6,10 +6,12 @@ use std::fmt::{self, Display};
 use std::path::PathBuf;
 
 use serde::Deserialize;
-
 use serde_json;
+use serde_yaml;
+use toml;
 
 use crate::core::structs::*;
+use crate::core::serde::DataFormat;
 
 type Result<T> = std::result::Result<T, Error>;
 
@@ -122,8 +124,43 @@ impl Node {
 }
 
 impl Tree {
-    pub fn insert_node_from_str(tree: Rc<RefCell<Tree>>, node_str: &str, recorded_file: PathBuf, is_root: bool) -> Result<()> {
-        let inner_node = Rc::new(RefCell::new(serde_json::from_str::<InnerNode>(node_str).or(Err(Error::DeserializeFailed))?));
+    fn validate(&self, node: Rc<RefCell<Node>>) -> Result<()> {
+        match &*node.borrow() {
+            Node::Direct(direct_node) => {
+                for (property, value) in &direct_node.properties {
+                    if let Some(property_type) = self.config.custom_properties.get(property) {
+                        if value.is_compatible(property_type) {
+                            return Ok(());
+                        } else {
+                            return Err(Error::IncompatibleType(property.clone(), direct_node.node_properties.record_file.clone()));
+                        }
+                    } else {
+                        return Err(Error::UnknownProperty(property.clone(), direct_node.node_properties.record_file.clone()));
+                    }
+                }
+            },
+            Node::Link(_) => {},
+        }
+        Ok(())
+    }
+
+    pub fn insert_node_from_str(tree: Rc<RefCell<Tree>>,
+                                node_str: &str,
+                                data_format: DataFormat,
+                                recorded_file: PathBuf,
+                                is_root: bool) -> Result<()> {
+        let inner_node = match data_format {
+            DataFormat::Json => {
+                serde_json::from_str::<InnerNode>(node_str).map_err(|error| Error::DeserializeFailed(Box::new(error)))?
+            },
+            DataFormat::Yaml => {
+                serde_yaml::from_str::<InnerNode>(node_str).map_err(|error| Error::DeserializeFailed(Box::new(error)))?
+            },
+            DataFormat::Toml => {
+                toml::from_str::<InnerNode>(node_str).map_err(|error| Error::DeserializeFailed(Box::new(error)))?
+            },
+        };
+        let inner_node = Rc::new(RefCell::new(inner_node));
         let nodes = Node::from_inner_node(&inner_node,
                                           None,
                                           Some(tree.borrow().config.project_name.clone()),
@@ -134,6 +171,7 @@ impl Tree {
             tree_ref_mut.root = Rc::downgrade(&nodes.last().unwrap().1);
         }
         for (path, node) in nodes {
+            tree_ref_mut.validate(Rc::clone(&node))?;
             tree_ref_mut.nodes.insert(path.components, node);
         }
         Ok(())
@@ -142,8 +180,10 @@ impl Tree {
 
 #[derive(Debug)]
 pub enum Error {
-    DeserializeFailed,
+    DeserializeFailed(Box<dyn error::Error>),
     LackName(PathBuf),
+    UnknownProperty(String, PathBuf),
+    IncompatibleType(String, PathBuf)
 }
 
 impl error::Error for Error {}
@@ -152,8 +192,10 @@ impl Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::result::Result<(), fmt::Error> {
         use Error::*;
         let message = match &self {
-            DeserializeFailed => format!("Deserialize error"),
-            LackName(path) => format!("In file {}, a node lacks name", path.to_str().unwrap())
+            DeserializeFailed(error) => format!("Deserialize error: {}", error),
+            LackName(path) => format!("In file {}, a node lacks name", path.to_str().unwrap()),
+            UnknownProperty(property_name, path) => format!("In file {}, a node has unknown property name {}", path.to_str().unwrap(), property_name),
+            IncompatibleType(property_name, path) => format!("In file {}, a node has incompatible property {}", path.to_str().unwrap(), property_name),
         };
         write!(f, "{}", message)
     }
