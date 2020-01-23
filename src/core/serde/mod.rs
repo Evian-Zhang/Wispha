@@ -1,5 +1,5 @@
-mod ser;
-mod de;
+pub mod ser;
+pub mod de;
 
 // Auxiliary module for serde with chrono
 pub(super) mod date_format {

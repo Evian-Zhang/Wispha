@@ -67,7 +67,7 @@ impl Tree {
 }
 
 #[derive(Debug)]
-enum Error {
+pub enum Error {
     PathNotFound(NodePath),
     SerializeFailed(Box<dyn error::Error>)
 }

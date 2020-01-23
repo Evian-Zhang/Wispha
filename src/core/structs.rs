@@ -18,7 +18,7 @@ pub struct NodePath {
 }
 
 impl NodePath {
-    pub(super) fn new(tree: &Weak<RefCell<Tree>>) -> NodePath {
+    pub fn new(tree: &Weak<RefCell<Tree>>) -> NodePath {
         NodePath {
             components: vec![],
             tree: tree.clone()
@@ -101,7 +101,7 @@ impl TypedProperty {
             TypedProperty::Int(_) => PropertyType::Int,
             TypedProperty::Double(_) => PropertyType::Double,
         };
-        self_type == property_type
+        self_type == *property_type
     }
 }
 
