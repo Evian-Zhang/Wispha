@@ -69,42 +69,6 @@ pub struct NodeProperties {
     pub record_file: PathBuf,
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum PropertyType {
-    String,
-    Date,
-    Int,
-    Double
-}
-
-/// The property with type. Support `String`, `Date` (stores in UTC), `Int` (with the same range as `isize` of Rust), `Double` (with the same range and precision as `f64` of Rust)
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(untagged)]
-pub enum TypedProperty {
-    String(String),
-
-    #[serde(with = "super::serde::date_format")]
-    Date(DateTime<Utc>),
-
-    /// property with `Int` type, with the same range as `isize` of Rust
-    Int(isize),
-
-    /// property with `Double` type, with the same range and precision as `f64` of Rust
-    Double(f64),
-}
-
-impl TypedProperty {
-    pub(crate) fn is_compatible(&self, property_type: &PropertyType) -> bool {
-        let self_type = match &self {
-            TypedProperty::String(_) => PropertyType::String,
-            TypedProperty::Date(_) => PropertyType::Date,
-            TypedProperty::Int(_) => PropertyType::Int,
-            TypedProperty::Double(_) => PropertyType::Double,
-        };
-        self_type == *property_type
-    }
-}
-
 /// Direct node structure, i.e. the node that truly has valuable values
 #[derive(Debug)]
 pub struct DirectNode {
@@ -117,8 +81,8 @@ pub struct DirectNode {
     /// The properties that are related to the node itself, but not the truly valuable information.
     pub node_properties: NodeProperties,
 
-    /// Customized properties in a direct node, supporting `String`, `Date`, `Int` and `Double`.
-    pub properties: HashMap<String, TypedProperty>,
+    /// Customized properties in a direct node.
+    pub properties: HashMap<String, String>,
 }
 
 #[derive(Serialize, Debug)]
@@ -130,7 +94,7 @@ pub struct LinkNode {
 
 /// Wispha node structure
 #[derive(Debug, Serialize)]
-#[serde(untagged)]
+#[serde(tag = "type")]
 pub enum Node {
     Direct(DirectNode),
     Link(LinkNode),
@@ -146,9 +110,8 @@ impl Node {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TreeConfig {
-    pub custom_properties: HashMap<String, PropertyType>,
     pub project_name: String,
 }
 
@@ -161,11 +124,11 @@ pub struct Tree {
 }
 
 impl Tree {
-    pub fn new(config: TreeConfig) -> Tree {
+    pub fn new(config: &TreeConfig) -> Tree {
         Tree {
             nodes: HashMap::new(),
             root: Weak::new(),
-            config
+            config: config.clone()
         }
     }
 
