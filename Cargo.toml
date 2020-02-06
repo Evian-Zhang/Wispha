@@ -16,7 +16,5 @@ path = "src/bin/main.rs"
 
 [dependencies]
 serde = { version = "*", features = ["derive", "rc"] }
-serde_json = "*"
-serde_yaml = "*"
 toml = "*"
-chrono = "*"
+maplit = "*"

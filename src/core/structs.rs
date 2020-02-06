@@ -4,7 +4,6 @@ use std::rc::{Rc, Weak};
 use std::fmt::{self, Display};
 use std::path::PathBuf;
 
-use chrono::{DateTime, Utc};
 use serde::{Serialize, Deserialize};
 
 use crate::strings::*;
