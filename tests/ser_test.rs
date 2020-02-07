@@ -1,8 +1,7 @@
 use libwispha::core::structs::*;
 use libwispha::serde::ser::*;
 
-use std::collections::HashMap;
-use std::rc::{Rc, Weak};
+use std::rc::Rc;
 use std::cell::RefCell;
 use std::path::PathBuf;
 
@@ -11,15 +10,11 @@ use maplit::*;
 
 #[test]
 fn to_toml_test() {
-    let mut config = TreeConfig {
+    let config = TreeConfig {
         project_name: String::from("TestProject")
     };
 
-    let tree = Rc::new(RefCell::new(Tree {
-        nodes: HashMap::new(),
-        root: Weak::new(),
-        config
-    }));
+    let tree = Rc::new(RefCell::new(Tree::new(&config)));
 
     let root_path = NodePath::new(&Rc::downgrade(&tree));
     let subnode1_path = root_path.push(String::from("subnode1"));
@@ -29,7 +24,7 @@ fn to_toml_test() {
         children: vec![subnode1_path.clone()],
         node_properties: NodeProperties {
             name: "TestProject".to_string(),
-            record_file: PathBuf::from("LOOKME.json")
+            record_file: PathBuf::from("LOOKME.toml")
         },
         properties: hashmap!{"description".to_string() => "Project directory".to_string()}
     })));
@@ -42,14 +37,30 @@ fn to_toml_test() {
         children: vec![],
         node_properties: NodeProperties {
             name: "subnode1".to_string(),
-            record_file: PathBuf::from("LOOKME.json")
+            record_file: PathBuf::from("LOOKME.toml")
         },
         properties: hashmap!{"description".to_string() => "subnode1".to_string()}
     })));
 
     tree.borrow_mut().nodes.insert(subnode1_path.components, subnode1);
 
-    let string = tree.borrow().to_string().unwrap();
-    println!("{}", string);
-    assert!(false)
+    let string = tree.borrow().to_string();
+    assert!(string.is_ok())
+}
+
+#[test]
+fn none_tree_test() {
+    let tree = Tree::new(&TreeConfig {
+        project_name: "My Project".to_string()
+    });
+
+    let res = tree.to_string();
+    if let Err(error) = res {
+        match error {
+            Error::EmptyTree => assert!(true),
+            _ => assert!(false)
+        }
+    } else {
+        assert!(false)
+    }
 }

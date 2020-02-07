@@ -6,6 +6,7 @@ use std::fmt;
 use std::path::PathBuf;
 
 use crate::core::structs::*;
+use crate::strings::*;
 
 use serde::Deserialize;
 use toml;
@@ -62,7 +63,7 @@ impl InnerNode {
                 let name = if let Some(name) = given_name {
                     name
                 } else {
-                    inner_node.borrow().properties.get("name").cloned().ok_or(Error::LackName)?
+                    inner_node.borrow().properties.get(NAME).cloned().ok_or(Error::LackName)?
                 };
                 let path = if let Some(parent) = &parent {
                     parent.push(name.clone())
@@ -127,19 +128,21 @@ impl InnerNode {
 }
 
 impl Tree {
-    pub fn insert_node_from_str(tree: Rc<RefCell<Tree>>,
-                                node_str: &str,
-                                recorded_file: PathBuf,
-                                is_root: bool) -> Result<(), Error> {
+    /// Insert nodes from TOML string `node_str` in `recorded_file` to `tree`.
+    /// If `parent` is `None`, treat `node_str` as root, else treat `node_str` as children of `parent`.
+    pub fn insert_nodes_from_str(tree: Rc<RefCell<Tree>>,
+                                 node_str: &str,
+                                 recorded_file: PathBuf,
+                                 parent: Option<NodePath>) -> Result<(), Error> {
         let inner_node = toml::from_str::<InnerNode>(node_str).map_err(|error| Error::ParsingFailed(error))?;
         let inner_node = Rc::new(RefCell::new(inner_node));
         let nodes = InnerNode::convert_to_nodes(&inner_node,
-                                                None,
+                                                parent.clone(),
                                                 Some(tree.borrow().config.project_name.clone()),
                                                 &Rc::downgrade(&tree),
                                                 &recorded_file)?;
         let mut tree_ref_mut = tree.borrow_mut();
-        if is_root {
+        if parent.is_none() {
             tree_ref_mut.root = Rc::downgrade(&nodes.last().unwrap().1);
         }
         for (path, node) in nodes {
@@ -152,7 +155,9 @@ impl Tree {
 #[derive(Debug)]
 pub enum Error {
     ParsingFailed(toml::de::Error),
+    /// Type of node is unknown
     UnknownType(String),
+    /// A node which is not the upmost node in a file, has no name
     LackName
 }
 

@@ -47,15 +47,22 @@ impl Serialize for Tree {
 }
 
 impl Tree {
+    /// Convert tree to TOML syntax
     pub fn to_string(&self) -> Result<String, Error> {
-        toml::to_string(&self).map_err(|error| Error::SerializeFailed(Box::new(error)))
+        if self.nodes.is_empty() {
+            Err(Error::EmptyTree)
+        } else {
+            toml::to_string(&self).map_err(|error| Error::SerializeFailed(Box::new(error)))
+        }
     }
 }
 
 #[derive(Debug)]
 pub enum Error {
     PathNotFound(NodePath),
-    SerializeFailed(Box<dyn error::Error>)
+    SerializeFailed(Box<dyn error::Error>),
+    /// Tree has no nodes
+    EmptyTree
 }
 
 impl error::Error for Error {}
@@ -65,7 +72,8 @@ impl fmt::Display for Error {
         use Error::*;
         let message = match &self {
             PathNotFound(path) => format!("Path {} not found.", path),
-            SerializeFailed(error) => format!("Serialize error: {}", error)
+            SerializeFailed(error) => format!("Serialize error: {}", error),
+            EmptyTree => String::from("Tree is empty.")
         };
         write!(f, "{}", message)
     }
