@@ -1,4 +1,4 @@
-use libwispha::core::structs::*;
+use libwispha::core::*;
 use libwispha::serde::de::*;
 
 use std::rc::Rc;

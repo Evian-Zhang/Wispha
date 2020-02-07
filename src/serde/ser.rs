@@ -1,7 +1,7 @@
 use std::error;
 use std::fmt;
 
-use crate::core::structs::*;
+use crate::core::*;
 use crate::strings::*;
 
 use serde::ser::{Serializer, SerializeMap};

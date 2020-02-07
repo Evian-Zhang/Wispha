@@ -5,7 +5,7 @@ use std::error;
 use std::fmt;
 use std::path::PathBuf;
 
-use crate::core::structs::*;
+use crate::core::*;
 use crate::strings::*;
 
 use serde::Deserialize;
