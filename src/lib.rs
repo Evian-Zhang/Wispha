@@ -1,6 +1,7 @@
 pub mod core;
 pub mod auxiliary;
 pub mod serde;
+pub mod manipulator;
 pub(crate) mod strings;
 
 #[cfg(test)]

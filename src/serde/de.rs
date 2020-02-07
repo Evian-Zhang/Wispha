@@ -73,6 +73,7 @@ impl InnerNode {
 
                 let node_properties = NodeProperties {
                     name,
+                    parent,
                     record_file: record_file.clone(),
                 };
                 let mut nodes = if let Some(children) = &inner_node.borrow().children {
@@ -94,7 +95,6 @@ impl InnerNode {
                     vec![]
                 };
                 let node = Rc::new(RefCell::new(Node::Direct(DirectNode {
-                    parent,
                     children: nodes.iter().map(|(node_path, _)| node_path.clone()).collect::<Vec<_>>(),
                     node_properties,
                     properties: inner_node.borrow().properties.clone(),
@@ -109,13 +109,14 @@ impl InnerNode {
                 } else {
                     inner_node.borrow().properties.get("name").cloned().ok_or(Error::LackName)?
                 };
-                let path = if let Some(parent) = parent {
+                let path = if let Some(parent) = &parent {
                     parent.push(name.clone())
                 } else {
                     NodePath::new(tree)
                 };
                 let node_properties = NodeProperties {
                     name,
+                    parent,
                     record_file: record_file.clone(),
                 };
                 let link_node = Rc::new(RefCell::new(Node::Link(LinkNode {
