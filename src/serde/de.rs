@@ -119,7 +119,8 @@ impl InnerNode {
                     record_file: record_file.clone(),
                 };
                 let link_node = Rc::new(RefCell::new(Node::Link(LinkNode {
-                    node_properties
+                    node_properties,
+                    target: PathBuf::from(inner_node.borrow().properties.get("target").cloned().ok_or(Error::LackTarget)?)
                 })));
                 Ok(vec![(path, link_node)])
             },
@@ -158,7 +159,9 @@ pub enum Error {
     /// Type of node is unknown
     UnknownType(String),
     /// A node which is not the upmost node in a file, has no name
-    LackName
+    LackName,
+    /// A node whose type is "Link" and lacks a target
+    LackTarget
 }
 
 impl error::Error for Error {}
@@ -169,7 +172,8 @@ impl fmt::Display for Error {
         let message = match &self {
             ParsingFailed(error) => format!("TOML syntax parsing error: {}", error),
             UnknownType(type_str) => format!("Unknown type {}", type_str),
-            LackName => String::from("Lack name")
+            LackName => String::from("Lack name"),
+            LackTarget => String::from(r#"The node whose type is "Link" lacks target"#)
         };
         write!(f, "{}", message)
     }

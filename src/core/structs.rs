@@ -84,11 +84,14 @@ pub struct DirectNode {
     pub properties: HashMap<String, String>,
 }
 
+/// Link node structure. Links to another Wispha file
 #[derive(Serialize, Debug)]
 pub struct LinkNode {
     /// The properties that are related to the node itself, but not the truly valuable information.
     #[serde(flatten)]
     pub node_properties: NodeProperties,
+    /// The path of linked Wispha file, e.g. subdir/LOOKME.toml. Same in memory as in Wispha file.
+    pub target: PathBuf
 }
 
 /// Wispha node structure

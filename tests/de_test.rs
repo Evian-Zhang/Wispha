@@ -35,3 +35,23 @@ fn default_type() {
         assert!(false);
     }
 }
+
+#[test]
+fn lack_target() {
+    let toml_str = r#"type = "Link""#;
+    let tree = Rc::new(RefCell::new(Tree::new(&TreeConfig {
+        project_name: "Project".to_string()
+    })));
+    let res = Tree::insert_nodes_from_str(Rc::clone(&tree),
+                                toml_str,
+                                PathBuf::from("LOOKME.toml"),
+                                None);
+    if let Err(error) = res {
+        match error {
+            Error::LackTarget => assert!(true),
+            _ => assert!(false)
+        }
+    } else {
+        assert!(false)
+    }
+}
