@@ -22,7 +22,7 @@ impl Serialize for DirectNode {
         if !self.children.is_empty() {
             let children = self.children.iter()
                                .map(|node_path| -> Result<_, S::Error> {
-                                   Ok(node_path.tree.upgrade().unwrap().borrow()
+                                   Ok(node_path.tree()
                                                .get_node(node_path)
                                                .ok_or(Error::PathNotFound(node_path.clone()))
                                                .map_err(serde::ser::Error::custom)?)
@@ -34,12 +34,12 @@ impl Serialize for DirectNode {
     }
 }
 
-impl Serialize for Tree {
+impl Serialize for InnerTree {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where
             S: Serializer {
         if !self.nodes.is_empty() {
-            self.root.upgrade().unwrap().borrow().serialize(serializer)
+            self.root().unwrap().borrow().serialize(serializer)
         } else {
             serializer.serialize_none()
         }
@@ -49,10 +49,10 @@ impl Serialize for Tree {
 impl Tree {
     /// Convert tree to TOML syntax
     pub fn to_string(&self) -> Result<String, Error> {
-        if self.nodes.is_empty() {
+        if self.0.borrow().nodes.is_empty() {
             Err(Error::EmptyTree)
         } else {
-            toml::to_string(&self).map_err(|error| Error::SerializeFailed(Box::new(error)))
+            toml::to_string(&*self.0.borrow()).map_err(|error| Error::SerializeFailed(Box::new(error)))
         }
     }
 }

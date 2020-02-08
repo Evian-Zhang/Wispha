@@ -1,18 +1,17 @@
 use crate::core::*;
 use crate::strings::*;
-use crate::serde::de;
 
 use std::fmt;
 use std::error;
-use std::rc::{Rc, Weak};
+use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::HashMap;
 
 impl NodePath {
-    pub fn new(tree: &Weak<RefCell<Tree>>) -> NodePath {
+    pub fn new(tree: &Tree) -> NodePath {
         NodePath {
             components: vec![],
-            tree: tree.clone()
+            tree: Rc::downgrade(&tree.0)
         }
     }
 
@@ -44,6 +43,10 @@ impl NodePath {
     pub fn name(&self) -> Option<String> {
         self.components.last().cloned()
     }
+
+    pub(crate) fn tree(&self) -> Tree {
+        Tree(self.tree.upgrade().unwrap())
+    }
 }
 
 impl fmt::Display for NodePath {
@@ -62,33 +65,60 @@ impl Node {
     }
 }
 
-impl Tree {
-    pub fn new(config: &TreeConfig) -> Tree {
-        Tree {
+impl InnerTree {
+    fn new(config: &TreeConfig) -> InnerTree {
+        InnerTree {
             nodes: HashMap::new(),
-            root: Weak::new(),
             config: config.clone()
         }
     }
 
-    /// Get node from the node_path
-    pub fn get_node(&self, node_path: &NodePath) -> Option<Rc<RefCell<Node>>> {
+    pub(crate) fn root(&self) -> Option<Rc<RefCell<Node>>> {
+        let root_path = vec![];
+        self.nodes.get(&root_path).map(|node_ref| Rc::clone(&node_ref))
+    }
+
+    fn get_node(&self, node_path: &NodePath) -> Option<Rc<RefCell<Node>>> {
         self.nodes.get(&node_path.components)
             .map(|node_ref| Rc::clone(node_ref))
+    }
+
+    fn insert_node(&mut self, node_path: NodePath, node: Rc<RefCell<Node>>) -> Option<Rc<RefCell<Node>>> {
+        self.nodes.insert(node_path.components, node)
+    }
+}
+
+impl Tree {
+    pub fn new(config: &TreeConfig) -> Tree {
+        Tree(Rc::new(RefCell::new(InnerTree::new(config))))
+    }
+
+    /// Get root. If the tree has no node, return `None`.
+    pub fn root(&self) -> Option<Rc<RefCell<Node>>> {
+        self.0.borrow().root()
+    }
+
+    pub fn config(&self) -> TreeConfig {
+        self.0.borrow().config.clone()
+    }
+
+    /// Get node from the node_path
+    pub fn get_node(&self, node_path: &NodePath) -> Option<Rc<RefCell<Node>>> {
+        self.0.borrow().get_node(node_path)
     }
 
     /// Insert node with `node_path` and `node`.
     /// If the `node_path` has already existed, the node is updated, and the old one is returned.
     pub fn insert_node(&mut self, node_path: NodePath, node: Rc<RefCell<Node>>) -> Option<Rc<RefCell<Node>>> {
-        self.nodes.insert(node_path.components, node)
+        self.0.borrow_mut().insert_node(node_path, node)
     }
 
     /// Get the node path of `node` in `tree`
-    pub fn get_node_path(tree: Rc<RefCell<Tree>>, node: Rc<RefCell<Node>>) -> NodePath {
+    pub fn get_node_path(&self, node: Rc<RefCell<Node>>) -> NodePath {
         if let Some(parent) = node.borrow().node_properties().parent {
             parent.push(node.borrow().node_properties().name.clone())
         } else {
-            NodePath::new(&Rc::downgrade(&tree))
+            NodePath::new(&self)
         }
     }
 
@@ -96,25 +126,25 @@ impl Tree {
     /// using `resolve_handler` to convert from `PathBuf` to `Node`.
     ///
     /// `resolve_handler`'s error return type can be `Error::Custom`
-    pub fn resolve_in_depth<F>(tree: Rc<RefCell<Tree>>,
+    pub fn resolve_in_depth<F>(&mut self,
                                node_path: &NodePath,
                                depth: usize,
                                resolve_handler: &F) -> Result<(), Error>
         where
-            F: Fn(Rc<RefCell<Tree>>, &LinkNode) -> Result<Rc<RefCell<Node>>, Error> {
+            F: Fn(&Tree, &LinkNode) -> Result<Rc<RefCell<Node>>, Error> {
         if depth > 0 {
-            let node = tree.borrow().get_node(node_path).ok_or(Error::PathNotFound(node_path.clone()))?;
+            let node = self.get_node(node_path).ok_or(Error::PathNotFound(node_path.clone()))?;
             let node = &*node.borrow();
             match node {
                 Node::Direct(direct_node) => {
                     for child in &direct_node.children {
-                        Tree::resolve_in_depth(Rc::clone(&tree), child, depth - 1, resolve_handler)?;
+                        self.resolve_in_depth(child, depth - 1, resolve_handler)?;
                     }
                 },
                 Node::Link(link_node) => {
-                    let node = resolve_handler(Rc::clone(&tree), link_node)?;
-                    tree.borrow_mut().insert_node(node_path.clone(), node);
-                    Tree::resolve_in_depth(Rc::clone(&tree), node_path, depth, resolve_handler)?;
+                    let node = resolve_handler(&self, link_node)?;
+                    self.insert_node(node_path.clone(), node);
+                    self.resolve_in_depth(node_path, depth, resolve_handler)?;
                 }
             }
         }

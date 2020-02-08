@@ -1,4 +1,4 @@
-use std::rc::{Rc, Weak};
+use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::error;
@@ -12,20 +12,20 @@ use serde::Deserialize;
 use toml;
 
 #[derive(Debug, Deserialize)]
-struct InnerNode {
+struct RawNode {
     #[serde(flatten)]
     properties: HashMap<String, String>,
-    children: Option<Vec<Rc<RefCell<InnerNode>>>>
+    children: Option<Vec<Rc<RefCell<RawNode>>>>
 }
 
-enum InnerNodeType {
+enum RawNodeType {
     Direct,
     Link
 }
 
-impl InnerNodeType {
-    fn from_str(s: &str) -> Option<InnerNodeType> {
-        use InnerNodeType::*;
+impl RawNodeType {
+    fn from_str(s: &str) -> Option<RawNodeType> {
+        use RawNodeType::*;
         match s {
             "Direct" => Some(Direct),
             "Link" => Some(Link),
@@ -34,36 +34,36 @@ impl InnerNodeType {
     }
 }
 
-impl Default for InnerNodeType {
+impl Default for RawNodeType {
     fn default() -> Self {
-        InnerNodeType::Direct
+        RawNodeType::Direct
     }
 }
 
-impl InnerNode {
+impl RawNode {
     // external call:
     //      if is root, no parent, give tree.config.project_name as given_name;
     //      else give parent, give link_node.node_properties.name as given_name
     // recursive call:
     //      give parent, give given_name
     // The upmost node is in the tail of returned vec
-    fn convert_to_nodes(inner_node: &Rc<RefCell<InnerNode>>,
+    fn convert_to_nodes(raw_node: &Rc<RefCell<RawNode>>,
                         parent: Option<NodePath>,
                         given_name: Option<String>,
-                        tree: &Weak<RefCell<Tree>>,
+                        tree: &Tree,
                         record_file: &PathBuf) -> Result<Vec<(NodePath, Rc<RefCell<Node>>)>, Error> {
-        let inner_node_type = if let Some(node_type_str) = inner_node.borrow().properties.get("type") {
-            InnerNodeType::from_str(node_type_str).ok_or(Error::UnknownType(node_type_str.to_owned()))?
+        let inner_node_type = if let Some(node_type_str) = raw_node.borrow().properties.get("type") {
+            RawNodeType::from_str(node_type_str).ok_or(Error::UnknownType(node_type_str.to_owned()))?
         } else {
-            InnerNodeType::default()
+            RawNodeType::default()
         };
         match inner_node_type {
-            InnerNodeType::Direct => {
+            RawNodeType::Direct => {
                 // given name is prior to the recorded name
                 let name = if let Some(name) = given_name {
                     name
                 } else {
-                    inner_node.borrow().properties.get(NAME).cloned().ok_or(Error::LackName)?
+                    raw_node.borrow().properties.get(NAME).cloned().ok_or(Error::LackName)?
                 };
                 let path = if let Some(parent) = &parent {
                     parent.push(name.clone())
@@ -76,11 +76,11 @@ impl InnerNode {
                     parent,
                     record_file: record_file.clone(),
                 };
-                let mut nodes = if let Some(children) = &inner_node.borrow().children {
+                let mut nodes = if let Some(children) = &raw_node.borrow().children {
                     // see https://stackoverflow.com/questions/59852161/how-to-handle-result-in-flat-map
                     children.iter()
                             .map(|sub_node| -> Result<_, Error> {
-                                InnerNode::convert_to_nodes(sub_node, Some(path.clone()), None, tree, record_file)
+                                RawNode::convert_to_nodes(sub_node, Some(path.clone()), None, tree, record_file)
                             })
                             .flat_map(|result| {
                                 match result {
@@ -97,17 +97,17 @@ impl InnerNode {
                 let node = Rc::new(RefCell::new(Node::Direct(DirectNode {
                     children: nodes.iter().map(|(node_path, _)| node_path.clone()).collect::<Vec<_>>(),
                     node_properties,
-                    properties: inner_node.borrow().properties.clone(),
+                    properties: raw_node.borrow().properties.clone(),
                 })));
 
                 nodes.push((path, node));
                 Ok(nodes)
             },
-            InnerNodeType::Link => {
+            RawNodeType::Link => {
                 let name = if let Some(name) = given_name {
                     name
                 } else {
-                    inner_node.borrow().properties.get("name").cloned().ok_or(Error::LackName)?
+                    raw_node.borrow().properties.get("name").cloned().ok_or(Error::LackName)?
                 };
                 let path = if let Some(parent) = &parent {
                     parent.push(name.clone())
@@ -121,7 +121,7 @@ impl InnerNode {
                 };
                 let link_node = Rc::new(RefCell::new(Node::Link(LinkNode {
                     node_properties,
-                    target: PathBuf::from(inner_node.borrow().properties.get("target").cloned().ok_or(Error::LackTarget)?)
+                    target: PathBuf::from(raw_node.borrow().properties.get("target").cloned().ok_or(Error::LackTarget)?)
                 })));
                 Ok(vec![(path, link_node)])
             },
@@ -132,23 +132,19 @@ impl InnerNode {
 impl Tree {
     /// Insert nodes from TOML string `node_str` in `recorded_file` to `tree`.
     /// If `parent` is `None`, treat `node_str` as root, else treat `node_str` as children of `parent`.
-    pub fn insert_nodes_from_str(tree: Rc<RefCell<Tree>>,
+    pub fn insert_nodes_from_str(&mut self,
                                  node_str: &str,
                                  recorded_file: PathBuf,
                                  parent: Option<NodePath>) -> Result<(), Error> {
-        let inner_node = toml::from_str::<InnerNode>(node_str).map_err(|error| Error::ParsingFailed(error))?;
-        let inner_node = Rc::new(RefCell::new(inner_node));
-        let nodes = InnerNode::convert_to_nodes(&inner_node,
-                                                parent.clone(),
-                                                Some(tree.borrow().config.project_name.clone()),
-                                                &Rc::downgrade(&tree),
-                                                &recorded_file)?;
-        let mut tree_ref_mut = tree.borrow_mut();
-        if parent.is_none() {
-            tree_ref_mut.root = Rc::downgrade(&nodes.last().unwrap().1);
-        }
+        let raw_node = toml::from_str::<RawNode>(node_str).map_err(|error| Error::ParsingFailed(error))?;
+        let raw_node = Rc::new(RefCell::new(raw_node));
+        let nodes = RawNode::convert_to_nodes(&raw_node,
+                                              parent.clone(),
+                                              Some(self.config().project_name.clone()),
+                                              &self,
+                                              &recorded_file)?;
         for (path, node) in nodes {
-            tree_ref_mut.nodes.insert(path.components, node);
+            self.insert_node(path, node);
         }
         Ok(())
     }

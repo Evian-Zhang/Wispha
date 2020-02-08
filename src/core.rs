@@ -10,7 +10,7 @@ type NodePathComponents = Vec<String>;
 #[derive(Clone, Debug, Default)]
 pub struct NodePath {
     pub(crate) components: NodePathComponents,
-    pub tree: Weak<RefCell<Tree>>
+    pub(crate) tree: Weak<RefCell<InnerTree>>
 }
 
 /// The properties that are shared by all type nodes
@@ -20,7 +20,6 @@ pub struct NodeProperties {
     /// If a Wispha node doesn't have parent (for example, `root` in a Wispha tree), this field is `None`
     #[serde(skip)]
     pub parent: Option<NodePath>,
-    // record_file should never be a single root or prefix
     #[serde(skip)]
     pub record_file: PathBuf,
 }
@@ -64,8 +63,9 @@ pub struct TreeConfig {
 
 /// Wispha tree structure
 #[derive(Debug)]
-pub struct Tree {
+pub(crate) struct InnerTree {
     pub nodes: HashMap<NodePathComponents, Rc<RefCell<Node>>>,
-    pub root: Weak<RefCell<Node>>,
     pub config: TreeConfig
 }
+
+pub struct Tree(pub(crate) Rc<RefCell<InnerTree>>);

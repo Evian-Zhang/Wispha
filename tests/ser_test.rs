@@ -14,9 +14,9 @@ fn to_toml_test() {
         project_name: String::from("TestProject")
     };
 
-    let tree = Rc::new(RefCell::new(Tree::new(&config)));
+    let mut tree = Tree::new(&config);
 
-    let root_path = NodePath::new(&Rc::downgrade(&tree));
+    let root_path = NodePath::new(&tree);
     let subnode1_path = root_path.push(String::from("subnode1"));
 
     let root = Rc::new(RefCell::new(Node::Direct(DirectNode {
@@ -29,8 +29,7 @@ fn to_toml_test() {
         properties: hashmap!{"description".to_string() => "Project directory".to_string()}
     })));
 
-    tree.borrow_mut().root = Rc::downgrade(&root);
-    tree.borrow_mut().insert_node(root_path.clone(), root);
+    tree.insert_node(root_path.clone(), root);
 
     let subnode1 = Rc::new(RefCell::new(Node::Direct(DirectNode {
         children: vec![],
@@ -42,9 +41,9 @@ fn to_toml_test() {
         properties: hashmap!{"description".to_string() => "subnode1".to_string()}
     })));
 
-    tree.borrow_mut().insert_node(subnode1_path.clone(), subnode1);
+    tree.insert_node(subnode1_path.clone(), subnode1);
 
-    let string = tree.borrow().to_string();
+    let string = tree.to_string();
     assert!(string.is_ok())
 }
 
