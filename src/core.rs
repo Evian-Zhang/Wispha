@@ -68,4 +68,5 @@ pub(crate) struct InnerTree {
     pub config: TreeConfig
 }
 
+#[derive(Debug)]
 pub struct Tree(pub(crate) Rc<RefCell<InnerTree>>);
