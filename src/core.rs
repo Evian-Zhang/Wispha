@@ -56,17 +56,19 @@ pub enum Node {
     Link(LinkNode),
 }
 
+/// Configuration of a Wispha tree
 #[derive(Debug, Clone)]
 pub struct TreeConfig {
     pub project_name: String,
 }
 
-/// Wispha tree structure
+// The inner structure of Wispha tree
 #[derive(Debug)]
 pub(crate) struct InnerTree {
     pub nodes: HashMap<NodePathComponents, Rc<RefCell<Node>>>,
     pub config: TreeConfig
 }
 
+/// Wispha tree structure
 #[derive(Debug)]
 pub struct Tree(pub(crate) Rc<RefCell<InnerTree>>);
