@@ -63,6 +63,14 @@ impl Node {
             Link(link_node) => link_node.node_properties.clone(),
         }
     }
+
+    pub fn get_direct(&self) -> Option<&DirectNode> {
+        if let Node::Direct(direct_node) = &self {
+            Some(direct_node)
+        } else {
+            None
+        }
+    }
 }
 
 impl InnerTree {
