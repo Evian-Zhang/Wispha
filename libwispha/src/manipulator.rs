@@ -109,7 +109,7 @@ impl Tree {
 
     /// Insert node with `node_path` and `node`.
     /// If the `node_path` has already existed, the node is updated, and the old one is returned.
-    pub fn insert_node(&mut self, node_path: NodePath, node: Rc<RefCell<Node>>) -> Option<Rc<RefCell<Node>>> {
+    pub fn insert_node(&self, node_path: NodePath, node: Rc<RefCell<Node>>) -> Option<Rc<RefCell<Node>>> {
         self.0.borrow_mut().insert_node(node_path, node)
     }
 
@@ -126,7 +126,7 @@ impl Tree {
     /// using `resolve_handler` to convert from `PathBuf` to `Node`.
     ///
     /// `resolve_handler`'s error return type can be `Error::Custom`
-    pub fn resolve_in_depth<F>(&mut self,
+    pub fn resolve_in_depth<F>(&self,
                                node_path: &NodePath,
                                depth: usize,
                                resolve_handler: &F) -> Result<(), Error>

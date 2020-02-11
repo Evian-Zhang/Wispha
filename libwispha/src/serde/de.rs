@@ -132,10 +132,10 @@ impl RawNode {
 impl Tree {
     /// Insert nodes from TOML string `node_str` in `recorded_file` to `tree`.
     /// If `parent` is `None`, treat `node_str` as root, else treat `node_str` as children of `parent`.
-    pub fn insert_nodes_from_str(&mut self,
+    pub fn insert_nodes_from_str(&self,
                                  node_str: &str,
                                  recorded_file: PathBuf,
-                                 parent: Option<NodePath>) -> Result<(), Error> {
+                                 parent: Option<NodePath>) -> Result<Rc<RefCell<Node>>, Error> {
         let raw_node = toml::from_str::<RawNode>(node_str).map_err(|error| Error::ParsingFailed(error))?;
         let raw_node = Rc::new(RefCell::new(raw_node));
         let nodes = RawNode::convert_to_nodes(&raw_node,
@@ -143,10 +143,11 @@ impl Tree {
                                               Some(self.config().project_name.clone()),
                                               &self,
                                               &recorded_file)?;
+        let root = Rc::clone(&nodes.last().unwrap().1);
         for (path, node) in nodes {
             self.insert_node(path, node);
         }
-        Ok(())
+        Ok(root)
     }
 }
 
