@@ -76,29 +76,29 @@ impl RawNode {
                     parent,
                     record_file: record_file.clone(),
                 };
-                let mut nodes = if let Some(children) = &raw_node.borrow().children {
-                    // see https://stackoverflow.com/questions/59852161/how-to-handle-result-in-flat-map
+
+                // the vector of vector of children of children
+                let sub_node_children = if let Some(children) = &raw_node.borrow().children {
                     children.iter()
-                            .map(|sub_node| -> Result<_, Error> {
-                                RawNode::convert_to_nodes(sub_node, Some(path.clone()), None, tree, record_file)
-                            })
-                            .flat_map(|result| {
-                                match result {
-                                    Ok(items) => items.into_iter()
-                                                      .map(|item| Ok(item))
-                                                      .collect(),
-                                    Err(error) => vec![Err(error)],
-                                }
-                            })
-                            .collect::<Result<Vec<_>, Error>>()?
+                        .map(|sub_node| -> Result<_, Error> {
+                            RawNode::convert_to_nodes(sub_node, Some(path.clone()), None, tree, record_file)
+                        })
+                        .collect::<Result<Vec<_>, Error>>()?
                 } else {
                     vec![]
                 };
+
+                let sub_nodes = sub_node_children.iter().map(|children| {
+                    children.last().unwrap().0.clone()
+                }).collect::<Vec<_>>();
+
                 let node = Rc::new(RefCell::new(Node::Direct(DirectNode {
-                    children: nodes.iter().map(|(node_path, _)| node_path.clone()).collect::<Vec<_>>(),
+                    children: sub_nodes,
                     node_properties,
                     properties: raw_node.borrow().properties.clone(),
                 })));
+
+                let mut nodes = sub_node_children.into_iter().flatten().collect::<Vec<_>>();
 
                 nodes.push((path, node));
                 Ok(nodes)

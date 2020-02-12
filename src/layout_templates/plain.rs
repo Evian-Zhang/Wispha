@@ -12,49 +12,64 @@ impl PlainLayout {
         PlainLayout { }
     }
 
+    // if `depth` < `max`, return `Some`, else return `None`
     fn layout_helper(&self,
                      tree: &Tree,
                      node_path: &NodePath,
                      depth: usize,
                      max: usize,
                      finish_depth: usize,
-                     is_last: bool) -> String {
-        let mut line = String::new();
-        if depth < max {
+                     is_last: bool) -> Option<String> {
+        if depth <= max {
+            let mut line = String::new();
+            // Can safely unwrap because of the effect of `resolve_in_depth`
             let node = tree.get_node(node_path).unwrap();
             let node = node.borrow();
             let direct_node = node.get_direct().unwrap();
 
-            for indent in 0..finish_depth {
-                line += "    ";
-            }
-
-            for indent in finish_depth..depth {
-                line += "│   ";
-            }
-
-            if is_last && depth > 0 {
-                line += "└── ";
-            } else {
-                line += "├── ";
+            // `depth == 0` means the node is at root
+            if depth > 0 {
+                for indent in 1..finish_depth {
+                    line += "    ";
+                }
+                for indent in finish_depth..depth {
+                    line += "│   ";
+                }
+                if is_last {
+                    line += "└── ";
+                } else {
+                    line += "├── ";
+                }
             }
 
             line += &direct_node.node_properties.name;
 
-            direct_node.children.iter().filter_map(|child_path| {
-                if let Some(child) = tree.get_node(child_path) {
-                    let child = child.borrow();
-                    if let Some(direct_node) = child.get_direct() {
-                        Some(self.layout_helper(tree, direct_node, depth + 1, max, finish_depth, is_last))
-                    } else {
-                        None
-                    }
+            let mut sub_lines = if let Some((last_child, remain)) = direct_node.children.split_last() {
+                let new_depth = depth + 1;
+                let new_finish_depth = if is_last && depth == finish_depth {
+                    finish_depth + 1
                 } else {
-                    None
+                    finish_depth
+                };
+
+                let mut strings = remain.iter().filter_map(|child_path| {
+                    self.layout_helper(tree, child_path, new_depth, max, new_finish_depth, false)
+                }).collect::<Vec<String>>();
+
+                if let Some(last_string) = self.layout_helper(tree, last_child, new_depth, max, new_finish_depth, true) {
+                    strings.push(last_string);
                 }
-            });
+                strings
+            } else {
+                vec![]
+            };
+
+            sub_lines.insert(0, line);
+
+            Some(sub_lines.join("\n"))
+        } else {
+            None
         }
-        line
     }
 }
 
@@ -72,9 +87,6 @@ impl Layout for PlainLayout {
 
     fn layout(&self, tree: &Tree, node_path: &NodePath, depth: usize) -> Result<String, Box<dyn error::Error>> {
         tree.resolve_in_depth(node_path, depth, &resolve_handler).map_err(|error| Box::new(error))?;
-        let root = tree.get_node(node_path).unwrap();
-        let root = root.borrow();
-        let direct_node = root.get_direct().unwrap();
-        Ok(self.layout_helper(direct_node, depth))
+        Ok(self.layout_helper(tree, node_path, 0, depth, 1, false).unwrap())
     }
 }

@@ -133,6 +133,10 @@ impl Tree {
     /// Update the `tree`'s `nodes`, starting from `node_path`, with depth `depth`, to direct node,
     /// using `resolve_handler` to convert from `PathBuf` to `Node`.
     ///
+    /// If this function returns `Ok`, it means two things:
+    /// * The `node_path` does exist in the tree
+    /// * The children of `node_path` in `depth` (if exists) are of type `DirectNode`
+    ///
     /// `resolve_handler`'s error return type can be `Error::Custom`
     pub fn resolve_in_depth<F>(&self,
                                node_path: &NodePath,
