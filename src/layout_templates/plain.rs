@@ -31,10 +31,10 @@ impl PlainLayout {
 
             // `depth == 0` means the node is at root
             if depth > 0 {
-                for indent in 1..finish_depth {
+                for _indent in 1..finish_depth {
                     line += "    ";
                 }
-                for indent in finish_depth..depth {
+                for _indent in finish_depth..depth {
                     line += "│   ";
                 }
                 if is_last {

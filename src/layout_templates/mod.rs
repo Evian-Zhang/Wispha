@@ -2,6 +2,9 @@ pub mod plain;
 
 use libwispha::core::*;
 use libwispha::manipulator;
+
+use crate::layouter::*;
+
 use std::fs;
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -15,4 +18,10 @@ fn resolve_handler(tree: &Tree, link_node: &LinkNode) -> Result<Rc<RefCell<Node>
                                path,
                                link_node.node_properties.parent.clone())
         .map_err(|de_error| manipulator::Error::Custom(Box::new(de_error)))
+}
+
+pub fn templates() -> Vec<Box<dyn Layout>> {
+    vec![
+        Box::new(plain::PlainLayout::new())
+    ]
 }
