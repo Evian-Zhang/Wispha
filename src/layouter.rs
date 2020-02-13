@@ -12,5 +12,10 @@ pub trait Layout {
 
     fn manual(&self) -> String;
 
-    fn layout(&self, tree: &Tree, node_path: &NodePath, depth: usize) -> Result<String, Box<dyn error::Error>>;
+    fn layout(&self,
+              tree: &Tree,
+              node_path: &NodePath,
+              depth: usize,
+              keys: &Vec<String>,
+              hide_key: bool) -> Result<String, Box<dyn error::Error>>;
 }
