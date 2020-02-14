@@ -19,6 +19,18 @@ impl NodePath {
         format!("{root}{components}", root=ROOT, components=self.components.join(PATH_SEPARATOR))
     }
 
+    pub fn from(path: &String, tree: &Tree) -> Result<NodePath, Error> {
+        if path.starts_with("/") {
+            let components = path.split("/").map(|component| component.to_string()).collect::<Vec<String>>();
+            Ok(NodePath {
+                components,
+                tree: Rc::downgrade(&tree.0)
+            })
+        } else {
+            Err(Error::NodePathMustBeAbsolute(path.clone()))
+        }
+    }
+
     pub fn push(&self, component: String) -> NodePath {
         let mut components = self.components.clone();
         components.push(component);
@@ -167,7 +179,8 @@ impl Tree {
 #[derive(Debug)]
 pub enum Error {
     PathNotFound(NodePath),
-    Custom(Box<dyn error::Error>)
+    Custom(Box<dyn error::Error>),
+    NodePathMustBeAbsolute(String)
 }
 
 impl error::Error for Error {}
@@ -177,7 +190,8 @@ impl fmt::Display for Error {
         use Error::*;
         let message = match &self {
             PathNotFound(path) => format!("Path {} not found.", path),
-            Custom(error) => format!("Custom error: {}", error)
+            Custom(error) => format!("Custom error: {}", error),
+            NodePathMustBeAbsolute(path) => format!("Node path must be absolute, but {} is not.", path)
         };
         write!(f, "{}", message)
     }

@@ -2,10 +2,32 @@ mod layouter;
 mod layout_templates;
 mod commandline;
 
+use libwispha::core::*;
 use structopt::StructOpt;
 
-fn main() {
+use std::error;
+use std::fs;
+
+fn run() -> Result<(), Box<dyn error::Error>> {
     let opt = commandline::CommandlineOptions::from_args();
+    let config = commandline::CommandlineConfig::from_opt(opt)?;
+
+    let tree_config = TreeConfig {
+        project_name: config.project_name.clone()
+    };
+
+    let tree = Tree::new(&tree_config);
+    let node_str = fs::read_to_string(&config.file)?;
+    tree.insert_nodes_from_str(&node_str, config.file.clone(), None)?;
+
+    Ok(())
+}
+
+fn main() {
+    if let Err(error) = run() {
+        eprintln!("Err: {}", error);
+        std::process::exit(1);
+    }
 //    let node_str = r#"
 //    description = "Main project folder"
 //    [[children]]
