@@ -21,6 +21,7 @@ impl NodePath {
 
     pub fn from(path: &String, tree: &Tree) -> Result<NodePath, Error> {
         if path.starts_with("/") {
+            // TODO: Fix bug of "/".to_string().split("/")
             let components = path.split("/").map(|component| component.to_string()).collect::<Vec<String>>();
             Ok(NodePath {
                 components,
@@ -155,6 +156,7 @@ impl Tree {
         where
             F: Fn(&Tree, &LinkNode) -> Result<Rc<RefCell<Node>>, Error> {
         if let Some(node) = self.get_node(node_path) {
+            println!("1{}", node_path);
             if let Node::Link(link_node) = &*node.borrow() {
                 resolve_handler(&self, link_node)?;
                 // in case of `target` of `link_node` is still a link node
@@ -162,8 +164,9 @@ impl Tree {
             }
             Ok(())
         } else {
+            println!("2{}", node_path);
             if let Some(parent) = &node_path.parent() {
-                self.resolve_node(&parent, &resolve_handler)?;
+                self.resolve_node(&parent, resolve_handler)?;
                 if let Some(node) = self.get_node(node_path) {
                     if let Node::Link(link_node) = &*node.borrow() {
                         resolve_handler(&self, link_node)?;

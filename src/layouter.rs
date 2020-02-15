@@ -1,7 +1,6 @@
 use libwispha::core::*;
 
 use std::error;
-use std::collections::HashMap;
 use std::fmt;
 
 pub struct LayoutInfo {

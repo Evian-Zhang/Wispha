@@ -13,8 +13,12 @@ use std::fmt;
 use std::path::PathBuf;
 
 fn resolve_handler(tree: &Tree, link_node: &LinkNode) -> Result<Rc<RefCell<Node>>, manipulator::Error> {
-    let path = link_node.node_properties.record_file.parent().unwrap()
-        .join(link_node.target.clone());
+    let path = if link_node.target.is_absolute() {
+        link_node.target.clone()
+    } else {
+        link_node.node_properties.record_file.parent().unwrap()
+                 .join(link_node.target.clone())
+    };
     let node_str = fs::read_to_string(&path)
         .or(Err(manipulator::Error::Custom(Box::new(Error::PathNotExist(path.clone())))))?;
     tree.insert_nodes_from_str(&node_str,
