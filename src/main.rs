@@ -7,6 +7,8 @@ use structopt::StructOpt;
 
 use std::error;
 use std::fs;
+use std::fmt;
+use std::path::PathBuf;
 
 fn run() -> Result<(), Box<dyn error::Error>> {
     let opt = commandline::CommandlineOptions::from_args();
@@ -17,9 +19,17 @@ fn run() -> Result<(), Box<dyn error::Error>> {
     };
 
     let tree = Tree::new(&tree_config);
-    let node_str = fs::read_to_string(&config.file)?;
+    let node_str = fs::read_to_string(&config.file)
+        .or(Err(Error::PathNotExist(config.file.clone())))?;
     tree.insert_nodes_from_str(&node_str, config.file.clone(), None)?;
-
+    let node_path = NodePath::from(&config.path, &tree)?;
+    layouter::LayoutManager::layout(&config.layout,
+                                    &layout_templates::layout_resolver,
+                                    &tree,
+                                    &node_path,
+                                    config.depth,
+                                    &config.keys,
+                                    config.hide_key)?;
     Ok(())
 }
 
@@ -50,4 +60,21 @@ fn main() {
 //    let plain = layout_templates::plain::PlainLayout::new();
 //    let plain_str = plain.layout(&tree, &NodePath::new(&tree), 3, &vec!["description".to_string()], false).unwrap();
 //    println!("{}", plain_str);
+}
+
+#[derive(Debug)]
+enum Error {
+    PathNotExist(PathBuf)
+}
+
+impl error::Error for Error { }
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        use Error::*;
+        let message = match &self {
+            PathNotExist(path) => format!("Can't open file at {}.", path.to_str().unwrap())
+        };
+        write!(f, "{}", message)
+    }
 }

@@ -28,6 +28,9 @@ pub struct CommandlineOptions {
 
     #[structopt(long, short)]
     pub file: Option<PathBuf>,
+
+    #[structopt(long, short)]
+    pub depth: Option<usize>,
 }
 
 #[derive(Debug)]
@@ -37,7 +40,8 @@ pub struct CommandlineConfig {
     pub path: String,
     pub keys: Vec<String>,
     pub hide_key: bool,
-    pub file: PathBuf
+    pub file: PathBuf,
+    pub depth: usize,
 }
 
 impl CommandlineConfig {
@@ -90,13 +94,20 @@ impl CommandlineConfig {
                 .join("LOOKME.toml")
         };
 
+        let depth = if let Some(depth) = opt.depth {
+            depth
+        } else {
+            3
+        };
+
         Ok(CommandlineConfig {
             layout,
             project_name,
             path,
             keys,
             hide_key,
-            file
+            file,
+            depth
         })
     }
 }

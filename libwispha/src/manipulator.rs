@@ -142,6 +142,44 @@ impl Tree {
         }
     }
 
+    /// Resolve to make sure tree has a direct node value of key `node_path`.
+    ///
+    /// `resolve_handler`'s error return type can be `Error::Custom`.
+    ///
+    /// `resolve_handler` does two things:
+    /// * Get the node recorded in the `target` of `link_node`
+    /// * Insert node into the tree
+    pub fn resolve_node<F>(&self,
+                           node_path: &NodePath,
+                           resolve_handler: &F) -> Result<(), Error>
+        where
+            F: Fn(&Tree, &LinkNode) -> Result<Rc<RefCell<Node>>, Error> {
+        if let Some(node) = self.get_node(node_path) {
+            if let Node::Link(link_node) = &*node.borrow() {
+                resolve_handler(&self, link_node)?;
+                // in case of `target` of `link_node` is still a link node
+                self.resolve_node(node_path, resolve_handler)?;
+            }
+            Ok(())
+        } else {
+            if let Some(parent) = &node_path.parent() {
+                self.resolve_node(&parent, &resolve_handler)?;
+                if let Some(node) = self.get_node(node_path) {
+                    if let Node::Link(link_node) = &*node.borrow() {
+                        resolve_handler(&self, link_node)?;
+                        // in case of `target` of `link_node` is still a link node
+                        self.resolve_node(node_path, resolve_handler)?;
+                    }
+                    Ok(())
+                } else {
+                    Err(Error::PathNotFound(node_path.clone()))
+                }
+            } else {
+                Err(Error::PathNotFound(node_path.clone()))
+            }
+        }
+    }
+
     /// Update the `tree`'s `nodes`, starting from `node_path`, with depth `depth`, to direct node,
     /// using `resolve_handler` to convert from `PathBuf` to `Node`.
     ///
@@ -149,27 +187,33 @@ impl Tree {
     /// * The `node_path` does exist in the tree
     /// * The children of `node_path` in `depth` (if exists) are of type `DirectNode`
     ///
-    /// `resolve_handler`'s error return type can be `Error::Custom`
+    /// The `node_path` itself's `depth` is 0
+    ///
+    /// `resolve_handler`'s error return type can be `Error::Custom`.
+    ///
+    /// `resolve_handler` does two things:
+    /// * Get the node recorded in the `target` of `link_node`
+    /// * Insert node into the tree
     pub fn resolve_in_depth<F>(&self,
                                node_path: &NodePath,
                                depth: usize,
                                resolve_handler: &F) -> Result<(), Error>
         where
             F: Fn(&Tree, &LinkNode) -> Result<Rc<RefCell<Node>>, Error> {
-        if depth > 0 {
-            let node = self.get_node(node_path).ok_or(Error::PathNotFound(node_path.clone()))?;
-            let node = &*node.borrow();
-            match node {
-                Node::Direct(direct_node) => {
+        let node = self.get_node(node_path).ok_or(Error::PathNotFound(node_path.clone()))?;
+        let node = &*node.borrow();
+        match node {
+            Node::Direct(direct_node) => {
+                if depth > 0 {
                     for child in &direct_node.children {
                         self.resolve_in_depth(child, depth - 1, resolve_handler)?;
                     }
-                },
-                Node::Link(link_node) => {
-                    let node = resolve_handler(&self, link_node)?;
-                    self.insert_node(node_path.clone(), node);
-                    self.resolve_in_depth(node_path, depth, resolve_handler)?;
                 }
+            },
+            Node::Link(link_node) => {
+                let node = resolve_handler(&self, link_node)?;
+                // in case of `target` of `link_node` is still a link node
+                self.resolve_in_depth(node_path, depth, resolve_handler)?;
             }
         }
         Ok(())

@@ -9,11 +9,17 @@ pub struct LayoutInfo {
     pub version: String
 }
 
+/// Layout template
 pub trait Layout {
     fn info(&self) -> LayoutInfo;
 
     fn manual(&self) -> String;
 
+    /// Display a tree layout relative to `node_path` in `depth` with `keys`.
+    ///
+    /// `depth`: the `node_path` itself is at depth 0. All its children whose depth <= `depth` will be displayed
+    /// `keys`: the property keys that will be displayed
+    /// `hide_key`: if `keys` only has one element, and `hide_key` is `true`, then the key itself will not be displayed
     fn layout(&self,
               tree: &Tree,
               node_path: &NodePath,
@@ -22,29 +28,19 @@ pub trait Layout {
               hide_key: bool) -> Result<String, Box<dyn error::Error>>;
 }
 
-pub struct LayoutManager {
-    layouts: HashMap<String, Box<dyn Layout>>
-}
+pub struct LayoutManager { }
 
 impl LayoutManager {
-    pub fn new(layouts: Vec<Box<dyn Layout>>) -> LayoutManager {
-        let layouts = layouts.into_iter().map(|layout| {
-            (layout.info().name.clone(), layout)
-        }).collect::<HashMap<String, Box<dyn Layout>>>();
-
-        LayoutManager {
-            layouts
-        }
-    }
-
-    pub fn layout(&self,
-                  name: &str,
-                  tree: &Tree,
-                  node_path: &NodePath,
-                  depth: usize,
-                  keys: &Vec<String>,
-                  hide_key: bool) -> Result<String, Box<dyn error::Error>> {
-        let layout = self.layouts.get(name).ok_or(Box::new(Error::LayoutNotFound(name.to_string())))?;
+    pub fn layout<F>(name: &str,
+                     layout_resolver: &F,
+                     tree: &Tree,
+                     node_path: &NodePath,
+                     depth: usize,
+                     keys: &Vec<String>,
+                     hide_key: bool) -> Result<String, Box<dyn error::Error>>
+        where
+            F: Fn(&str) -> Option<Box<dyn Layout>> {
+        let layout = layout_resolver(name).ok_or(Error::LayoutNotFound(name.to_string()))?;
         layout.layout(tree, node_path, depth, keys, hide_key)
     }
 }

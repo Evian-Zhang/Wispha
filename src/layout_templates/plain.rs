@@ -24,7 +24,7 @@ impl PlainLayout {
                      hide_key: bool) -> Option<String> {
         if depth <= max {
             let mut line = String::new();
-            // Can safely unwrap because of the effect of `resolve_in_depth`
+            // Can safely unwrap because of the effect of `resolve_node`
             let node = tree.get_node(node_path).unwrap();
             let node = node.borrow();
             let direct_node = node.get_direct().unwrap();
@@ -114,8 +114,8 @@ impl Layout for PlainLayout {
               depth: usize,
               keys: &Vec<String>,
               hide_key: bool) -> Result<String, Box<dyn error::Error>> {
-        tree.resolve_in_depth(node_path, depth, &resolve_handler)
-            .map_err(|error| Box::new(error))?;
+        tree.resolve_node(node_path, &resolve_handler)?;
+        tree.resolve_in_depth(node_path, depth, &resolve_handler)?;
         Ok(self.layout_helper(tree,
                               node_path,
                               0,
