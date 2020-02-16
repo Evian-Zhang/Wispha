@@ -23,13 +23,14 @@ fn run() -> Result<(), Box<dyn error::Error>> {
         .or(Err(Error::PathNotExist(config.file.clone())))?;
     tree.insert_nodes_from_str(&node_str, config.file.clone(), None)?;
     let node_path = NodePath::from(&config.path, &tree)?;
-    layouter::LayoutManager::layout(&config.layout,
-                                    &layout_templates::layout_resolver,
-                                    &tree,
-                                    &node_path,
-                                    config.depth,
-                                    &config.keys,
-                                    config.hide_key)?;
+    let layout_str = layouter::LayoutManager::layout(&config.layout,
+                                                     &layout_templates::layout_resolver,
+                                                     &tree,
+                                                     &node_path,
+                                                     config.depth,
+                                                     &config.keys,
+                                                     config.hide_key)?;
+    println!("{}", layout_str);
     Ok(())
 }
 

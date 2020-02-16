@@ -6,6 +6,7 @@ use std::error;
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 impl NodePath {
     pub fn new(tree: &Tree) -> NodePath {
@@ -19,16 +20,24 @@ impl NodePath {
         format!("{root}{components}", root=ROOT, components=self.components.join(PATH_SEPARATOR))
     }
 
-    pub fn from(path: &String, tree: &Tree) -> Result<NodePath, Error> {
+    pub fn from(raw_path: &String, tree: &Tree) -> Result<NodePath, Error> {
+        let mut path = raw_path.clone();
         if path.starts_with("/") {
-            // TODO: Fix bug of "/".to_string().split("/")
-            let components = path.split("/").map(|component| component.to_string()).collect::<Vec<String>>();
+            path = path[1..].to_string();
+            if path.ends_with("/") {
+                path.pop();
+            }
+            let components = if path.is_empty() {
+                vec![]
+            } else {
+                path.split("/").map(|component| component.to_string()).collect::<Vec<String>>()
+            };
             Ok(NodePath {
                 components,
                 tree: Rc::downgrade(&tree.0)
             })
         } else {
-            Err(Error::NodePathMustBeAbsolute(path.clone()))
+            Err(Error::NodePathMustBeAbsolute(raw_path.clone()))
         }
     }
 
@@ -146,30 +155,37 @@ impl Tree {
     /// Resolve to make sure tree has a direct node value of key `node_path`.
     ///
     /// `resolve_handler`'s error return type can be `Error::Custom`.
-    ///
-    /// `resolve_handler` does two things:
-    /// * Get the node recorded in the `target` of `link_node`
-    /// * Insert node into the tree
+    /// `resolve_handler` convert `link_node`'s `target` to a node_str contains the `target`'s content
     pub fn resolve_node<F>(&self,
                            node_path: &NodePath,
                            resolve_handler: &F) -> Result<(), Error>
         where
-            F: Fn(&Tree, &LinkNode) -> Result<Rc<RefCell<Node>>, Error> {
+            F: Fn(&LinkNode) -> Result<(PathBuf, String), Error> {
         if let Some(node) = self.get_node(node_path) {
-            println!("1{}", node_path);
             if let Node::Link(link_node) = &*node.borrow() {
-                resolve_handler(&self, link_node)?;
+                let (path, node_str) = resolve_handler(link_node)?;
+                let parent_and_given_name = link_node.node_properties.parent.clone()
+                                                     .map(|parent| (parent, link_node.node_properties.name.clone()));
+                self.insert_nodes_from_str(&node_str,
+                                           path,
+                                           parent_and_given_name)
+                    .map_err(|de_error| Error::Custom(Box::new(de_error)))?;
                 // in case of `target` of `link_node` is still a link node
                 self.resolve_node(node_path, resolve_handler)?;
             }
             Ok(())
         } else {
-            println!("2{}", node_path);
             if let Some(parent) = &node_path.parent() {
                 self.resolve_node(&parent, resolve_handler)?;
                 if let Some(node) = self.get_node(node_path) {
                     if let Node::Link(link_node) = &*node.borrow() {
-                        resolve_handler(&self, link_node)?;
+                        let (path, node_str) = resolve_handler(link_node)?;
+                        let parent_and_given_name = link_node.node_properties.parent.clone()
+                                                             .map(|parent| (parent, link_node.node_properties.name.clone()));
+                        self.insert_nodes_from_str(&node_str,
+                                                   path,
+                                                   parent_and_given_name)
+                            .map_err(|de_error| Error::Custom(Box::new(de_error)))?;
                         // in case of `target` of `link_node` is still a link node
                         self.resolve_node(node_path, resolve_handler)?;
                     }
@@ -193,16 +209,13 @@ impl Tree {
     /// The `node_path` itself's `depth` is 0
     ///
     /// `resolve_handler`'s error return type can be `Error::Custom`.
-    ///
-    /// `resolve_handler` does two things:
-    /// * Get the node recorded in the `target` of `link_node`
-    /// * Insert node into the tree
+    /// `resolve_handler` convert `link_node`'s `target` to a node_str contains the `target`'s content
     pub fn resolve_in_depth<F>(&self,
                                node_path: &NodePath,
                                depth: usize,
                                resolve_handler: &F) -> Result<(), Error>
         where
-            F: Fn(&Tree, &LinkNode) -> Result<Rc<RefCell<Node>>, Error> {
+            F: Fn(&LinkNode) -> Result<(PathBuf, String), Error> {
         let node = self.get_node(node_path).ok_or(Error::PathNotFound(node_path.clone()))?;
         let node = &*node.borrow();
         match node {
@@ -214,7 +227,13 @@ impl Tree {
                 }
             },
             Node::Link(link_node) => {
-                let node = resolve_handler(&self, link_node)?;
+                let (path, node_str) = resolve_handler(link_node)?;
+                let parent_and_given_name = link_node.node_properties.parent.clone()
+                                                     .map(|parent| (parent, link_node.node_properties.name.clone()));
+                self.insert_nodes_from_str(&node_str,
+                                           path,
+                                           parent_and_given_name)
+                    .map_err(|de_error| Error::Custom(Box::new(de_error)))?;
                 // in case of `target` of `link_node` is still a link node
                 self.resolve_in_depth(node_path, depth, resolve_handler)?;
             }
@@ -237,7 +256,7 @@ impl fmt::Display for Error {
         use Error::*;
         let message = match &self {
             PathNotFound(path) => format!("Path {} not found.", path),
-            Custom(error) => format!("Custom error: {}", error),
+            Custom(error) => format!("{}", error),
             NodePathMustBeAbsolute(path) => format!("Node path must be absolute, but {} is not.", path)
         };
         write!(f, "{}", message)

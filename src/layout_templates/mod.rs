@@ -6,13 +6,11 @@ use libwispha::manipulator;
 use crate::layouter::Layout;
 
 use std::fs;
-use std::rc::Rc;
-use std::cell::RefCell;
 use std::error;
 use std::fmt;
 use std::path::PathBuf;
 
-fn resolve_handler(tree: &Tree, link_node: &LinkNode) -> Result<Rc<RefCell<Node>>, manipulator::Error> {
+fn resolve_handler(link_node: &LinkNode) -> Result<(PathBuf, String), manipulator::Error> {
     let path = if link_node.target.is_absolute() {
         link_node.target.clone()
     } else {
@@ -21,10 +19,7 @@ fn resolve_handler(tree: &Tree, link_node: &LinkNode) -> Result<Rc<RefCell<Node>
     };
     let node_str = fs::read_to_string(&path)
         .or(Err(manipulator::Error::Custom(Box::new(Error::PathNotExist(path.clone())))))?;
-    tree.insert_nodes_from_str(&node_str,
-                               path,
-                               link_node.node_properties.parent.clone())
-        .map_err(|de_error| manipulator::Error::Custom(Box::new(de_error)))
+    Ok((path, node_str))
 }
 
 #[derive(Debug)]

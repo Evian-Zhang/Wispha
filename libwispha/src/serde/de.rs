@@ -52,12 +52,12 @@ impl RawNode {
                         given_name: Option<String>,
                         tree: &Tree,
                         record_file: &PathBuf) -> Result<Vec<(NodePath, Rc<RefCell<Node>>)>, Error> {
-        let inner_node_type = if let Some(node_type_str) = raw_node.borrow().properties.get("type") {
+        let raw_node_type = if let Some(node_type_str) = raw_node.borrow().properties.get("type") {
             RawNodeType::from_str(node_type_str).ok_or(Error::UnknownType(node_type_str.to_owned()))?
         } else {
             RawNodeType::default()
         };
-        match inner_node_type {
+        match raw_node_type {
             RawNodeType::Direct => {
                 // given name is prior to the recorded name
                 let name = if let Some(name) = given_name {
@@ -131,16 +131,23 @@ impl RawNode {
 
 impl Tree {
     /// Insert nodes from TOML string `node_str` in `recorded_file` to `tree`.
-    /// If `parent` is `None`, treat `node_str` as root, else treat `node_str` as children of `parent`.
+    ///
+    /// If `node_str` is the root of Wispha tree, `parent_and_given_name` should be `None`;
+    /// else `parent` should be the `node_str`'s parent, `given_name` should be the link node's `name`
     pub fn insert_nodes_from_str(&self,
                                  node_str: &str,
                                  recorded_file: PathBuf,
-                                 parent: Option<NodePath>) -> Result<Rc<RefCell<Node>>, Error> {
+                                 parent_and_given_name: Option<(NodePath, String)>) -> Result<Rc<RefCell<Node>>, Error> {
         let raw_node = toml::from_str::<RawNode>(node_str).map_err(|error| Error::ParsingFailed(error))?;
         let raw_node = Rc::new(RefCell::new(raw_node));
+        let (parent, given_name) = if let Some((parent, given_name)) = parent_and_given_name {
+            (Some(parent), given_name)
+        } else {
+            (None, self.config().project_name.clone())
+        };
         let nodes = RawNode::convert_to_nodes(&raw_node,
-                                              parent.clone(),
-                                              Some(self.config().project_name.clone()),
+                                              parent,
+                                              Some(given_name),
                                               &self,
                                               &recorded_file)?;
         let root = Rc::clone(&nodes.last().unwrap().1);
