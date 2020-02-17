@@ -1,6 +1,9 @@
+mod commandline_parser;
+
 use super::{CommandlineOption, InteractOptions};
 
 use libwispha::core::*;
+use structopt::StructOpt;
 
 use std::error;
 use std::path::PathBuf;
@@ -42,6 +45,18 @@ impl InteractConfig {
     }
 }
 
+#[derive(StructOpt)]
+#[structopt(rename_all = "kebab-case")]
+enum Subcommand {
+
+}
+
+impl InteractOptions {
+    fn run_helper() -> Result<bool, Box<dyn error::Error>> {
+        Ok(false)
+    }
+}
+
 impl CommandlineOption for InteractOptions {
     fn run(self) -> Result<(), Box<dyn error::Error>> {
         let config = InteractConfig::from_opt(self)?;
@@ -56,7 +71,10 @@ impl CommandlineOption for InteractOptions {
         tree.insert_nodes_from_str(&node_str, config.file.clone(), None)?;
 
         loop {
-
+            match InteractOptions::run_helper() {
+                Ok(will_quit) => if will_quit { break },
+                Err(error) => println!("{}", error)
+            }
         }
 
         Ok(())
@@ -68,6 +86,7 @@ impl CommandlineOption for InteractOptions {
 #[derive(Debug)]
 pub enum Error {
     CurrentDirectoryNotAvailable(std::io::Error),
+    PathNotExist(PathBuf),
 }
 
 impl error::Error for Error { }
@@ -77,6 +96,7 @@ impl fmt::Display for Error {
         use Error::*;
         let message = match &self {
             CurrentDirectoryNotAvailable(io_error) => format!("Can not access current directory: {}", io_error),
+            PathNotExist(path) => format!("Can't open file at {}.", path.to_str().unwrap()),
         };
         write!(f, "{}", message)
     }
