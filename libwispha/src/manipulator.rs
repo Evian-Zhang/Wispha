@@ -155,12 +155,13 @@ impl Tree {
     /// Get the os-related path of `node` in `tree`
     pub fn get_path_buf(&self, node_path: &NodePath) -> Result<PathBuf, Error> {
         let node = self.get_node(node_path).ok_or(Error::PathNotFound(node_path.clone()))?;
-        if let Some(parent) = &node.borrow().node_properties().parent {
-            Ok(self.get_path_buf(parent)?.join(node.borrow().node_properties().name))
+        let node = node.borrow();
+        if let Some(parent) = &node.node_properties().parent {
+            Ok(self.get_path_buf(parent)?.join(node.node_properties().name))
         } else {
             // is root
-            let dir = node.borrow().node_properties().record_file.parent().unwrap();
-            Ok(dir.to_path_buf())
+            let dir = node.node_properties().record_file.parent().unwrap().to_path_buf();
+            Ok(dir)
         }
     }
 

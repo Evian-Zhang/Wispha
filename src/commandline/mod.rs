@@ -1,132 +1,62 @@
-use crate::layout_templates::plain;
-use crate::layouter::Layout;
-
 use structopt::StructOpt;
 
 use std::path::PathBuf;
-use std::env;
-use std::fmt;
 use std::error;
+
+mod layout;
+mod interact;
+
+pub trait CommandlineOption {
+    fn run(self) -> Result<(), Box<dyn error::Error>>;
+}
 
 #[derive(StructOpt)]
 #[structopt(rename_all = "kebab-case")]
-pub struct CommandlineOptions {
+pub struct LayoutOptions {
     #[structopt(long, short)]
-    pub layout: Option<String>,
+    layout: Option<String>,
 
     #[structopt(long, short = "n")]
-    pub project_name: Option<String>,
+    project_name: Option<String>,
 
     #[structopt(long, short)]
-    pub path: Option<String>,
+    path: Option<String>,
 
     #[structopt(long, short, use_delimiter = true)]
-    pub keys: Option<Vec<String>>,
+    keys: Option<Vec<String>>,
 
     #[structopt(long, short)]
-    pub hide_key: Option<bool>,
+    hide_key: Option<bool>,
 
     #[structopt(long, short)]
-    pub file: Option<PathBuf>,
+    file: Option<PathBuf>,
 
     #[structopt(long, short)]
-    pub depth: Option<usize>,
+    depth: Option<usize>,
 }
 
-#[derive(Debug)]
-pub struct CommandlineConfig {
-    pub layout: String,
-    pub project_name: String,
-    pub path: String,
-    pub keys: Vec<String>,
-    pub hide_key: bool,
-    pub file: PathBuf,
-    pub depth: usize,
+#[derive(StructOpt)]
+#[structopt(rename_all = "kebab-case")]
+pub struct InteractOptions {
+    #[structopt(long, short = "n")]
+    project_name: Option<String>,
+
+    #[structopt(long, short)]
+    file: Option<PathBuf>,
 }
 
-impl CommandlineConfig {
-    pub fn from_opt(opt: CommandlineOptions) -> Result<Self, Error> {
-        let layout = if let Some(layout) = opt.layout {
-            layout
-        } else {
-            plain::PlainLayout::new().info().name.clone()
-        };
-
-        let project_name = if let Some(project_name) = opt.project_name {
-            project_name
-        } else {
-            ".".to_string()
-        };
-
-        let path = if let Some(path) = opt.path {
-            if path.starts_with("/") {
-                path
-            } else {
-                return Err(Error::NodePathMustBeAbsolute(path));
-            }
-        } else {
-            "/".to_string()
-        };
-
-        let keys = if let Some(keys) = opt.keys {
-            keys
-        } else {
-            vec![]
-        };
-
-        let hide_key = if let Some(hide_key) = opt.hide_key {
-            hide_key
-        } else {
-            false
-        };
-
-        let file = if let Some(file) = opt.file {
-            if file.is_absolute() {
-                file
-            } else {
-                env::current_dir()
-                    .map_err(|io_error| Error::CurrentDirectoryNotAvailable(io_error))?
-                    .join(file)
-            }
-        } else {
-            env::current_dir()
-                .map_err(|io_error| Error::CurrentDirectoryNotAvailable(io_error))?
-                .join("LOOKME.toml")
-        };
-
-        let depth = if let Some(depth) = opt.depth {
-            depth
-        } else {
-            3
-        };
-
-        Ok(CommandlineConfig {
-            layout,
-            project_name,
-            path,
-            keys,
-            hide_key,
-            file,
-            depth
-        })
-    }
+#[derive(StructOpt)]
+pub enum Commandline {
+    Layout(LayoutOptions),
+    Interact(InteractOptions)
 }
 
-#[derive(Debug)]
-pub enum Error {
-    NodePathMustBeAbsolute(String),
-    CurrentDirectoryNotAvailable(std::io::Error),
-}
-
-impl error::Error for Error { }
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
-        use Error::*;
-        let message = match &self {
-            NodePathMustBeAbsolute(path) => format!("Node path must be absolute, but {} is not.", path),
-            CurrentDirectoryNotAvailable(io_error) => format!("Can not access current directory: {}", io_error)
-        };
-        write!(f, "{}", message)
+impl CommandlineOption for Commandline {
+    fn run(self) -> Result<(), Box<dyn error::Error>> {
+        use Commandline::*;
+        match self {
+            Layout(layout_options) => layout_options.run(),
+            Interact(interact_options) => interact_options.run(),
+        }
     }
 }
