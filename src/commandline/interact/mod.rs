@@ -1,4 +1,5 @@
 mod commandline_parser;
+mod layout;
 
 use super::{CommandlineOption, InteractOptions};
 
@@ -10,10 +11,15 @@ use std::path::PathBuf;
 use std::env;
 use std::fmt;
 use std::fs;
+use std::io::{self, BufRead, Read, Write};
 
 struct InteractConfig {
     project_name: String,
     file: PathBuf,
+}
+
+trait InteractOption {
+    fn run(self, interact_conf: &InteractConfig) -> Result<(), Box<dyn error::Error>>;
 }
 
 impl InteractConfig {
@@ -47,12 +53,48 @@ impl InteractConfig {
 
 #[derive(StructOpt)]
 #[structopt(rename_all = "kebab-case")]
-enum Subcommand {
+struct LayoutOptions {
+    #[structopt(long, short)]
+    layout: Option<String>,
 
+    #[structopt(long, short)]
+    path: Option<String>,
+
+    #[structopt(long, short, use_delimiter = true)]
+    keys: Option<Vec<String>>,
+
+    #[structopt(long, short)]
+    hide_key: Option<bool>,
+
+    #[structopt(long, short)]
+    depth: Option<usize>,
+}
+
+#[derive(StructOpt)]
+#[structopt(rename_all = "kebab-case")]
+enum Subcommand {
+    Layout(LayoutOptions),
+    Quit,
 }
 
 impl InteractOptions {
+    const MAX_LENGTH: u64 = 256;
+
     fn run_helper() -> Result<bool, Box<dyn error::Error>> {
+        use Subcommand::*;
+
+        let stdin = io::stdin();
+        let mut input = String::new();
+        let mut bstdin = std::io::BufReader::new(stdin.take(InteractOptions::MAX_LENGTH));
+        bstdin.read_line(&mut input).unwrap();
+        // pop the newline character
+        input.pop();
+        let args = commandline_parser::to_args(&input)?;
+        let interact_opt = Subcommand::from_iter_safe(args)?;
+        match interact_opt {
+            Layout(layout_options) => {},
+            Quit => return Ok(true),
+        }
         Ok(false)
     }
 }
@@ -71,8 +113,10 @@ impl CommandlineOption for InteractOptions {
         tree.insert_nodes_from_str(&node_str, config.file.clone(), None)?;
 
         loop {
+            print!("(wispha) ");
+            io::stdout().flush().unwrap();
             match InteractOptions::run_helper() {
-                Ok(will_quit) => if will_quit { break },
+                Ok(will_quit) => if will_quit { break } else { continue },
                 Err(error) => println!("{}", error)
             }
         }
@@ -80,8 +124,6 @@ impl CommandlineOption for InteractOptions {
         Ok(())
     }
 }
-
-
 
 #[derive(Debug)]
 pub enum Error {

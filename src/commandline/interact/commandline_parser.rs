@@ -1,12 +1,10 @@
 use std::error;
 use std::fmt;
 
-pub fn to_args(input: &String) -> Result<Vec<String>, Error> {
-    let mut args = vec!["wispha".to_string()];
+pub fn to_args(input: &String) -> Result<Vec<&str>, Error> {
+    let mut args = vec![""];
 
-    for arg in input.split(" ") {
-        args.push(arg.to_string());
-    }
+    args.append(&mut input.split(" ").collect::<Vec<&str>>());
     Ok(args)
 }
 
