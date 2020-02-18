@@ -82,6 +82,7 @@ impl InteractOptions {
         use Subcommand::*;
 
         let args = commandline_parser::to_args(&line)?;
+        println!("{:?}", args);
         let interact_opt = Subcommand::from_iter_safe(args)?;
         match interact_opt {
             Layout(layout_options) => {},
