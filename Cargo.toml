@@ -11,3 +11,4 @@ edition = "2018"
 [dependencies]
 libwispha = { path = "libwispha" }
 structopt = "*"
+rustyline = "*"

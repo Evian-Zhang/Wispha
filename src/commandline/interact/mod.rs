@@ -5,13 +5,13 @@ use super::{CommandlineOption, InteractOptions};
 
 use libwispha::core::*;
 use structopt::StructOpt;
+use rustyline;
 
 use std::error;
 use std::path::PathBuf;
 use std::env;
 use std::fmt;
 use std::fs;
-use std::io::{self, BufRead, Read, Write};
 
 struct InteractConfig {
     project_name: String,
@@ -78,18 +78,10 @@ enum Subcommand {
 }
 
 impl InteractOptions {
-    const MAX_LENGTH: u64 = 256;
-
-    fn run_helper() -> Result<bool, Box<dyn error::Error>> {
+    fn run_helper(line: &String) -> Result<bool, Box<dyn error::Error>> {
         use Subcommand::*;
 
-        let stdin = io::stdin();
-        let mut input = String::new();
-        let mut bstdin = std::io::BufReader::new(stdin.take(InteractOptions::MAX_LENGTH));
-        bstdin.read_line(&mut input).unwrap();
-        // pop the newline character
-        input.pop();
-        let args = commandline_parser::to_args(&input)?;
+        let args = commandline_parser::to_args(&line)?;
         let interact_opt = Subcommand::from_iter_safe(args)?;
         match interact_opt {
             Layout(layout_options) => {},
@@ -112,12 +104,22 @@ impl CommandlineOption for InteractOptions {
             .or(Err(Error::PathNotExist(config.file.clone())))?;
         tree.insert_nodes_from_str(&node_str, config.file.clone(), None)?;
 
+        let mut rl = rustyline::Editor::<()>::new();
+        let mut line;
+
         loop {
-            print!("(wispha) ");
-            io::stdout().flush().unwrap();
-            match InteractOptions::run_helper() {
-                Ok(will_quit) => if will_quit { break } else { continue },
-                Err(error) => println!("{}", error)
+            line = rl.readline("(wispha) ");
+            match &line {
+                Ok(line) => {
+                    match InteractOptions::run_helper(&line) {
+                        Ok(will_quit) => if will_quit { break } else { continue },
+                        Err(error) => println!("{}", error)
+                    }
+                },
+                Err(error) => {
+                    eprintln!("{}", error);
+                    break;
+                }
             }
         }
 
