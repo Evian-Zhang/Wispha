@@ -45,11 +45,7 @@ impl LayoutConfig {
             vec![]
         };
 
-        let hide_key = if let Some(hide_key) = layout_opt.hide_key {
-            hide_key
-        } else {
-            false
-        };
+        let hide_key = layout_opt.hide_key.clone();
 
         let file = interact_conf.file.clone();
 

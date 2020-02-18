@@ -26,7 +26,7 @@ pub struct LayoutOptions {
     keys: Option<Vec<String>>,
 
     #[structopt(long, short)]
-    hide_key: Option<bool>,
+    hide_key: bool,
 
     #[structopt(long, short)]
     file: Option<PathBuf>,

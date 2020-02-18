@@ -50,11 +50,7 @@ impl LayoutConfig {
             vec![]
         };
 
-        let hide_key = if let Some(hide_key) = opt.hide_key {
-            hide_key
-        } else {
-            false
-        };
+        let hide_key = opt.hide_key.clone();
 
         let file = if let Some(file) = opt.file {
             if file.is_absolute() {
