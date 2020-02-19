@@ -5,7 +5,6 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::path::PathBuf;
 
-#[macro_use]
 use maplit::*;
 
 #[test]
@@ -14,7 +13,7 @@ fn to_json_test() {
         project_name: String::from("TestProject")
     };
 
-    let mut tree = Tree::new(&config);
+    let tree = Tree::new(&config);
 
     let root_path = NodePath::new(&tree);
     let subnode1_path = root_path.push(String::from("subnode1"));

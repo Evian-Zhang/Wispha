@@ -1,27 +1,25 @@
 use libwispha::core::*;
 use libwispha::serde::de::*;
 
-use std::rc::Rc;
-use std::cell::RefCell;
 use std::path::PathBuf;
 
 #[test]
 fn empty_str() {
     let json_str = "";
-    let mut tree = Tree::new(&TreeConfig {
+    let tree = Tree::new(&TreeConfig {
         project_name: "Project".to_string()
     });
     let res = tree.insert_nodes_from_str(json_str,
                                          PathBuf::from("LOOKME.json"),
                                          None,
                                          &vec![]);
-    assert!(res.is_ok())
+    assert!(res.is_err())
 }
 
 #[test]
 fn default_type() {
-    let json_str = r#"{"description": "root file"}""#;
-    let mut tree = Tree::new(&TreeConfig {
+    let json_str = r#"{"description": "root file"}"#;
+    let tree = Tree::new(&TreeConfig {
         project_name: "Project".to_string()
     });
     tree.insert_nodes_from_str(json_str,
@@ -38,7 +36,7 @@ fn default_type() {
 #[test]
 fn lack_target() {
     let json_str = r#"{"type": "Link"}"#;
-    let mut tree = Tree::new(&TreeConfig {
+    let tree = Tree::new(&TreeConfig {
         project_name: "Project".to_string()
     });
     let res = tree.insert_nodes_from_str(json_str,
