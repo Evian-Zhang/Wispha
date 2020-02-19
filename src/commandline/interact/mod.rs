@@ -29,13 +29,14 @@ struct InteractConfig {
 }
 
 trait InteractOption {
-    fn run(self, interact_conf: &InteractConfig) -> Result<(), Box<dyn error::Error>>;
+    fn run(self, interact_conf: &InteractConfig, tree: &Tree) -> Result<(), Box<dyn error::Error>>;
 }
 
 #[derive(StructOpt)]
 #[structopt(rename_all = "kebab-case")]
 enum Subcommand {
     Layout(layout::LayoutOptions),
+    Refresh,
     Quit,
 }
 
@@ -67,14 +68,23 @@ impl InteractConfig {
         })
     }
 
-    fn run_helper(&self, line: &String) -> Result<bool, Box<dyn error::Error>> {
+    fn run_helper(&self, line: &String, tree: &Tree) -> Result<bool, Box<dyn error::Error>> {
         use Subcommand::*;
 
         let args = commandline_parser::to_args(&line)?;
         let interact_opt = Subcommand::from_iter_safe(args)?;
         match interact_opt {
             Layout(layout_options) => {
-                layout_options.run(&self)?;
+                layout_options.run(&self, tree)?;
+            },
+            Refresh => {
+                let node_str = fs::read_to_string(&self.file)
+                    .or(Err(Error::PathNotExist(self.file.clone())))?;
+
+                // Clear after read to string successfully
+                tree.clear();
+
+                tree.insert_nodes_from_str(&node_str, self.file.clone(), None)?;
             },
             Quit => return Ok(true),
         }
@@ -102,7 +112,7 @@ impl CommandlineOption for InteractOptions {
             line = rl.readline("(wispha) ");
             match &line {
                 Ok(line) => {
-                    match config.run_helper(&line) {
+                    match config.run_helper(&line, &tree) {
                         Ok(will_quit) => if will_quit { break } else { continue },
                         Err(error) => eprintln!("{}", error)
                     }

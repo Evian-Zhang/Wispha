@@ -5,10 +5,8 @@ use super::{InteractConfig, InteractOption};
 use libwispha::core::*;
 use structopt::StructOpt;
 
-use std::path::PathBuf;
 use std::fmt;
 use std::error;
-use std::fs;
 
 #[derive(StructOpt)]
 #[structopt(rename_all = "kebab-case")]
@@ -31,23 +29,19 @@ pub struct LayoutOptions {
 
 struct LayoutConfig {
     layout: String,
-    project_name: String,
     path: String,
     keys: Vec<String>,
     hide_key: bool,
-    file: PathBuf,
     depth: usize,
 }
 
 impl LayoutConfig {
-    fn from_opt(layout_opt: LayoutOptions, interact_conf: &InteractConfig) -> Result<Self, Error> {
+    fn from_opt(layout_opt: LayoutOptions) -> Result<Self, Error> {
         let layout = if let Some(layout) = layout_opt.layout {
             layout
         } else {
             plain::PlainLayout::new().info().name.clone()
         };
-
-        let project_name = interact_conf.project_name.clone();
 
         let path = if let Some(path) = layout_opt.path {
             if path.starts_with("/") {
@@ -67,8 +61,6 @@ impl LayoutConfig {
 
         let hide_key = layout_opt.hide_key.clone();
 
-        let file = interact_conf.file.clone();
-
         let depth = if let Some(depth) = layout_opt.depth {
             depth
         } else {
@@ -77,28 +69,18 @@ impl LayoutConfig {
 
         Ok(LayoutConfig {
             layout,
-            project_name,
             path,
             keys,
             hide_key,
-            file,
             depth
         })
     }
 }
 
 impl InteractOption for LayoutOptions {
-    fn run(self, interact_conf: &InteractConfig) -> Result<(), Box<dyn error::Error>> {
-        let config = LayoutConfig::from_opt(self, interact_conf)?;
+    fn run(self, _interact_conf: &InteractConfig, tree: &Tree) -> Result<(), Box<dyn error::Error>> {
+        let config = LayoutConfig::from_opt(self)?;
 
-        let tree_config = TreeConfig {
-            project_name: config.project_name.clone()
-        };
-
-        let tree = Tree::new(&tree_config);
-        let node_str = fs::read_to_string(&config.file)
-            .or(Err(Error::PathNotExist(config.file.clone())))?;
-        tree.insert_nodes_from_str(&node_str, config.file.clone(), None)?;
         let node_path = NodePath::from(&config.path, &tree)?;
         let layout_str = crate::layouter::LayoutManager::layout(&config.layout,
                                                                 &crate::layout_templates::layout_resolver,
@@ -115,7 +97,6 @@ impl InteractOption for LayoutOptions {
 #[derive(Debug)]
 pub enum Error {
     NodePathMustBeAbsolute(String),
-    PathNotExist(PathBuf),
 }
 
 impl error::Error for Error { }
@@ -125,7 +106,6 @@ impl fmt::Display for Error {
         use Error::*;
         let message = match &self {
             NodePathMustBeAbsolute(path) => format!("Node path must be absolute, but {} is not.", path),
-            PathNotExist(path) => format!("Can't open file at {}.", path.to_str().unwrap()),
         };
         write!(f, "{}", message)
     }

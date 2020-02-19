@@ -116,6 +116,10 @@ impl InnerTree {
     fn insert_node(&mut self, node_path: NodePath, node: Rc<RefCell<Node>>) -> Option<Rc<RefCell<Node>>> {
         self.nodes.insert(node_path.components, node)
     }
+
+    fn clear(&mut self) {
+        self.nodes.clear()
+    }
 }
 
 impl Tree {
@@ -165,18 +169,24 @@ impl Tree {
         }
     }
 
+    /// Clear all the nodes in the tree
+    pub fn clear(&self) {
+        self.0.borrow_mut().clear()
+    }
+
     /// Resolve to make sure tree has a direct node value of key `node_path`.
     ///
-    /// `resolve_handler`'s error return type can be `Error::Custom`.
-    /// `resolve_handler` convert `link_node`'s `target` to a node_str contains the `target`'s content
+    /// `resolve_handler` does two things:
+    /// * Convert `link_node`'s `target` to a node_str contains the `target`'s content
+    /// * Check if a direct loop exists, i.e. the `link_node`'s `target` is its `record_file`
     pub fn resolve_node<F>(&self,
                            node_path: &NodePath,
                            resolve_handler: &F) -> Result<(), Error>
         where
-            F: Fn(&LinkNode) -> Result<(PathBuf, String), Error> {
+            F: Fn(&LinkNode) -> Result<(PathBuf, String), Box<dyn error::Error>> {
         if let Some(node) = self.get_node(node_path) {
             if let Node::Link(link_node) = &*node.borrow() {
-                let (path, node_str) = resolve_handler(link_node)?;
+                let (path, node_str) = resolve_handler(link_node).map_err(|error| Error::Custom(error))?;
                 let parent_and_given_name = link_node.node_properties.parent.clone()
                                                      .map(|parent| (parent, link_node.node_properties.name.clone()));
                 self.insert_nodes_from_str(&node_str,
@@ -192,7 +202,7 @@ impl Tree {
                 self.resolve_node(&parent, resolve_handler)?;
                 if let Some(node) = self.get_node(node_path) {
                     if let Node::Link(link_node) = &*node.borrow() {
-                        let (path, node_str) = resolve_handler(link_node)?;
+                        let (path, node_str) = resolve_handler(link_node).map_err(|error| Error::Custom(error))?;
                         let parent_and_given_name = link_node.node_properties.parent.clone()
                                                              .map(|parent| (parent, link_node.node_properties.name.clone()));
                         self.insert_nodes_from_str(&node_str,
@@ -221,14 +231,15 @@ impl Tree {
     ///
     /// The `node_path` itself's `depth` is 0
     ///
-    /// `resolve_handler`'s error return type can be `Error::Custom`.
-    /// `resolve_handler` convert `link_node`'s `target` to a node_str contains the `target`'s content
+    /// `resolve_handler` does two things:
+    /// * Convert `link_node`'s `target` to a node_str contains the `target`'s content
+    /// * Check if a direct loop exists, i.e. the `link_node`'s `target` is its `record_file`
     pub fn resolve_in_depth<F>(&self,
                                node_path: &NodePath,
                                depth: usize,
                                resolve_handler: &F) -> Result<(), Error>
         where
-            F: Fn(&LinkNode) -> Result<(PathBuf, String), Error> {
+            F: Fn(&LinkNode) -> Result<(PathBuf, String), Box<dyn error::Error>> {
         let node = self.get_node(node_path).ok_or(Error::PathNotFound(node_path.clone()))?;
         let node = &*node.borrow();
         match node {
@@ -240,7 +251,7 @@ impl Tree {
                 }
             },
             Node::Link(link_node) => {
-                let (path, node_str) = resolve_handler(link_node)?;
+                let (path, node_str) = resolve_handler(link_node).map_err(|error| Error::Custom(error))?;
                 let parent_and_given_name = link_node.node_properties.parent.clone()
                                                      .map(|parent| (parent, link_node.node_properties.name.clone()));
                 self.insert_nodes_from_str(&node_str,
