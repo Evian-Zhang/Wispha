@@ -1,7 +1,7 @@
 mod commandline_parser;
 mod layout;
 
-use super::{CommandlineOption, InteractOptions};
+use super::CommandlineOption;
 
 use libwispha::core::*;
 use structopt::StructOpt;
@@ -12,6 +12,16 @@ use std::path::PathBuf;
 use std::env;
 use std::fmt;
 use std::fs;
+
+#[derive(StructOpt)]
+#[structopt(rename_all = "kebab-case")]
+pub struct InteractOptions {
+    #[structopt(long, short = "n")]
+    project_name: Option<String>,
+
+    #[structopt(long, short)]
+    file: Option<PathBuf>,
+}
 
 struct InteractConfig {
     project_name: String,
@@ -24,27 +34,8 @@ trait InteractOption {
 
 #[derive(StructOpt)]
 #[structopt(rename_all = "kebab-case")]
-struct LayoutOptions {
-    #[structopt(long, short)]
-    layout: Option<String>,
-
-    #[structopt(long, short)]
-    path: Option<String>,
-
-    #[structopt(long, short, use_delimiter = true)]
-    keys: Option<Vec<String>>,
-
-    #[structopt(long, short)]
-    hide_key: bool,
-
-    #[structopt(long, short)]
-    depth: Option<usize>,
-}
-
-#[derive(StructOpt)]
-#[structopt(rename_all = "kebab-case")]
 enum Subcommand {
-    Layout(LayoutOptions),
+    Layout(layout::LayoutOptions),
     Quit,
 }
 

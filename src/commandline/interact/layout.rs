@@ -1,13 +1,33 @@
 use crate::layout_templates::plain;
 use crate::layouter::Layout;
-use super::{LayoutOptions, InteractConfig, InteractOption};
+use super::{InteractConfig, InteractOption};
 
 use libwispha::core::*;
+use structopt::StructOpt;
 
 use std::path::PathBuf;
 use std::fmt;
 use std::error;
 use std::fs;
+
+#[derive(StructOpt)]
+#[structopt(rename_all = "kebab-case")]
+pub struct LayoutOptions {
+    #[structopt(long, short)]
+    layout: Option<String>,
+
+    #[structopt(long, short)]
+    path: Option<String>,
+
+    #[structopt(long, short, use_delimiter = true)]
+    keys: Option<Vec<String>>,
+
+    #[structopt(long, short)]
+    hide_key: bool,
+
+    #[structopt(long, short)]
+    depth: Option<usize>,
+}
 
 struct LayoutConfig {
     layout: String,
