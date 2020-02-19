@@ -6,7 +6,7 @@ use crate::strings::*;
 
 use serde::ser::{Serializer, SerializeMap};
 use serde::Serialize;
-use toml;
+use serde_json;
 
 impl Serialize for DirectNode {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -47,12 +47,12 @@ impl Serialize for InnerTree {
 }
 
 impl Tree {
-    /// Convert tree to TOML syntax
+    /// Convert tree to JSON syntax
     pub fn to_string(&self) -> Result<String, Error> {
         if self.0.borrow().nodes.is_empty() {
             Err(Error::EmptyTree)
         } else {
-            toml::to_string(&*self.0.borrow()).map_err(|error| Error::SerializeFailed(Box::new(error)))
+            serde_json::to_string(&*self.0.borrow()).map_err(|error| Error::SerializeFailed(Box::new(error)))
         }
     }
 }

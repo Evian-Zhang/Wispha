@@ -89,7 +89,7 @@ impl LayoutConfig {
         } else {
             env::current_dir()
                 .map_err(|io_error| Error::CurrentDirectoryNotAvailable(io_error))?
-                .join("LOOKME.toml")
+                .join("LOOKME.json")
         };
 
         let depth = if let Some(depth) = opt.depth {

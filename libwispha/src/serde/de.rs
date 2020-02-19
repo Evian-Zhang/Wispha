@@ -9,7 +9,7 @@ use crate::core::*;
 use crate::strings::*;
 
 use serde::Deserialize;
-use toml;
+use serde_json;
 
 #[derive(Debug, Deserialize)]
 struct RawNode {
@@ -140,7 +140,7 @@ impl RawNode {
 }
 
 impl Tree {
-    /// Insert nodes from TOML string `node_str` in `recorded_file` to `tree`.
+    /// Insert nodes from JSON string `node_str` in `recorded_file` to `tree`.
     ///
     /// If `node_str` is the root of Wispha tree, `parent_and_given_name` should be `None`;
     /// else `parent` should be the `node_str`'s parent, `given_name` should be the link node's `name`
@@ -149,7 +149,7 @@ impl Tree {
                                  recorded_file: PathBuf,
                                  parent_and_given_name: Option<(NodePath, String)>,
                                  preserved_keys: &Vec<&'static str>) -> Result<Rc<RefCell<Node>>, Error> {
-        let raw_node = toml::from_str::<RawNode>(node_str).map_err(|error| Error::ParsingFailed(error))?;
+        let raw_node = serde_json::from_str::<RawNode>(node_str).map_err(|error| Error::ParsingFailed(error))?;
         let raw_node = Rc::new(RefCell::new(raw_node));
         let (parent, given_name) = if let Some((parent, given_name)) = parent_and_given_name {
             (Some(parent), given_name)
@@ -172,7 +172,7 @@ impl Tree {
 
 #[derive(Debug)]
 pub enum Error {
-    ParsingFailed(toml::de::Error),
+    ParsingFailed(serde_json::error::Error),
     /// Type of node is unknown
     UnknownType(String),
     /// A node which is not the upmost node in a file, has no name
@@ -189,7 +189,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         use Error::*;
         let message = match &self {
-            ParsingFailed(error) => format!("TOML syntax parsing error: {}", error),
+            ParsingFailed(error) => format!("JSON syntax parsing error: {}", error),
             UnknownType(type_str) => format!("Unknown type {}", type_str),
             LackName => String::from("Lack name"),
             LackTarget => String::from(r#"The node whose type is "Link" lacks target"#),
@@ -199,8 +199,8 @@ impl fmt::Display for Error {
     }
 }
 
-impl From<toml::de::Error> for Error {
-    fn from(error: toml::de::Error) -> Self {
+impl From<serde_json::error::Error> for Error {
+    fn from(error: serde_json::error::Error) -> Self {
         Error::ParsingFailed(error)
     }
 }

@@ -12,7 +12,7 @@ path = "src/lib.rs"
 
 [dependencies]
 serde = { version = "*", features = ["derive", "rc"] }
-toml = "*"
+serde_json = "*"
 
 [dev-dependencies]
 maplit = "*"

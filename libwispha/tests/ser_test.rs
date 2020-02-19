@@ -9,7 +9,7 @@ use std::path::PathBuf;
 use maplit::*;
 
 #[test]
-fn to_toml_test() {
+fn to_json_test() {
     let config = TreeConfig {
         project_name: String::from("TestProject")
     };
@@ -24,7 +24,7 @@ fn to_toml_test() {
         node_properties: NodeProperties {
             name: "TestProject".to_string(),
             parent: None,
-            record_file: PathBuf::from("LOOKME.toml")
+            record_file: PathBuf::from("LOOKME.json")
         },
         properties: hashmap!{"description".to_string() => "Project directory".to_string()}
     })));
@@ -36,7 +36,7 @@ fn to_toml_test() {
         node_properties: NodeProperties {
             name: "subnode1".to_string(),
             parent: Some(root_path.clone()),
-            record_file: PathBuf::from("LOOKME.toml")
+            record_file: PathBuf::from("LOOKME.json")
         },
         properties: hashmap!{"description".to_string() => "subnode1".to_string()}
     })));

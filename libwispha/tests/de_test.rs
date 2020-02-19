@@ -7,25 +7,27 @@ use std::path::PathBuf;
 
 #[test]
 fn empty_str() {
-    let toml_str = "";
+    let json_str = "";
     let mut tree = Tree::new(&TreeConfig {
         project_name: "Project".to_string()
     });
-    let res = tree.insert_nodes_from_str(toml_str,
-                                               PathBuf::from("LOOKME.toml"),
-                                               None);
+    let res = tree.insert_nodes_from_str(json_str,
+                                         PathBuf::from("LOOKME.json"),
+                                         None,
+                                         &vec![]);
     assert!(res.is_ok())
 }
 
 #[test]
 fn default_type() {
-    let toml_str = r#"description = "Root file""#;
+    let json_str = r#"{"description": "root file"}""#;
     let mut tree = Tree::new(&TreeConfig {
         project_name: "Project".to_string()
     });
-    tree.insert_nodes_from_str(toml_str,
-                                     PathBuf::from("LOOKME.toml"),
-                                     None).unwrap();
+    tree.insert_nodes_from_str(json_str,
+                               PathBuf::from("LOOKME.json"),
+                               None,
+                               &vec![]).unwrap();
     if let Node::Direct(_) = &*tree.root().unwrap().borrow() {
         assert!(true);
     } else {
@@ -35,13 +37,14 @@ fn default_type() {
 
 #[test]
 fn lack_target() {
-    let toml_str = r#"type = "Link""#;
+    let json_str = r#"{"type": "Link"}"#;
     let mut tree = Tree::new(&TreeConfig {
         project_name: "Project".to_string()
     });
-    let res = tree.insert_nodes_from_str(toml_str,
-                                               PathBuf::from("LOOKME.toml"),
-                                               None);
+    let res = tree.insert_nodes_from_str(json_str,
+                                         PathBuf::from("LOOKME.json"),
+                                         None,
+                                         &vec![]);
     if let Err(error) = res {
         match error {
             Error::LackTarget => assert!(true),
