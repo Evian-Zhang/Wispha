@@ -12,7 +12,11 @@ use std::error;
 extern crate lazy_static;
 
 lazy_static! {
-    static ref PRESERVED_KEYS: Vec<&'static str> = vec!["path"];
+    static ref PRESERVED_KEYS: Vec<&'static str> = vec![
+    "path",
+    "parent",
+    "record_file"
+    ];
 }
 
 fn run() -> Result<(), Box<dyn error::Error>> {

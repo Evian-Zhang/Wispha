@@ -32,6 +32,28 @@ impl InteractOption for GetOptions {
                     let path = tree.get_path_buf(&node_path)?;
                     println!("{}", path.to_str().unwrap());
                 },
+                "children" => {
+                    let node = node.borrow();
+                    let children = &node.get_direct().unwrap().children;
+                    let children_str = children.iter()
+                        .map(|child| child.to_string())
+                        .collect::<Vec<String>>()
+                        .join("\n");
+                    println!("{}", children_str);
+                },
+                "parent" => {
+                    let node = node.borrow();
+                    if let Some(parent) = &node.get_direct().unwrap().node_properties.parent {
+                        println!("{}", parent);
+                    } else {
+                        return Err(Box::new(Error::NoParent));
+                    }
+                },
+                "record_file" => {
+                    let node = node.borrow();
+                    let record_file = &node.get_direct().unwrap().node_properties.record_file;
+                    println!("{}", record_file.to_str().unwrap())
+                }
                 _ => {
                     return Err(Box::new(Error::PropertyInexist(self.key.clone())));
                 }
@@ -43,7 +65,8 @@ impl InteractOption for GetOptions {
 
 #[derive(Debug)]
 pub enum Error {
-    PropertyInexist(String)
+    PropertyInexist(String),
+    NoParent,
 }
 
 impl error::Error for Error { }
@@ -53,6 +76,7 @@ impl fmt::Display for Error {
         use Error::*;
         let message = match &self {
             PropertyInexist(key) => format!("The node does not have a property with key {}.", key),
+            NoParent => String::from("This node is root, who has no parent."),
         };
         write!(f, "{}", message)
     }
