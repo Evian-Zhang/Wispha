@@ -8,6 +8,13 @@ use structopt::StructOpt;
 
 use std::error;
 
+#[macro_use]
+extern crate lazy_static;
+
+lazy_static! {
+    static ref PRESERVED_KEYS: Vec<&'static str> = vec!["path"];
+}
+
 fn run() -> Result<(), Box<dyn error::Error>> {
     let opt = commandline::Commandline::from_args();
     opt.run()?;

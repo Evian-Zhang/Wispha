@@ -9,7 +9,7 @@ use std::error;
 use std::fmt;
 use std::path::PathBuf;
 
-fn resolve_handler(link_node: &LinkNode) -> Result<(PathBuf, String), Box<dyn error::Error>> {
+pub fn resolve_handler(link_node: &LinkNode) -> Result<(PathBuf, String), Box<dyn error::Error>> {
     let path = if link_node.target.is_absolute() {
         link_node.target.clone()
     } else {

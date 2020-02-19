@@ -114,8 +114,8 @@ impl Layout for PlainLayout {
               depth: usize,
               keys: &Vec<String>,
               hide_key: bool) -> Result<String, Box<dyn error::Error>> {
-        tree.resolve_node(node_path, &resolve_handler)?;
-        tree.resolve_in_depth(node_path, depth, &resolve_handler)?;
+        tree.resolve_node(node_path, &resolve_handler, &*crate::PRESERVED_KEYS)?;
+        tree.resolve_in_depth(node_path, depth, &resolve_handler, &*crate::PRESERVED_KEYS)?;
         Ok(self.layout_helper(tree,
                               node_path,
                               0,

@@ -1,5 +1,6 @@
 mod commandline_parser;
 mod layout;
+mod get;
 
 use super::CommandlineOption;
 
@@ -36,6 +37,7 @@ trait InteractOption {
 #[structopt(rename_all = "kebab-case")]
 enum Subcommand {
     Layout(layout::LayoutOptions),
+    Get(get::GetOptions),
     Refresh,
     Quit,
 }
@@ -77,6 +79,9 @@ impl InteractConfig {
             Layout(layout_options) => {
                 layout_options.run(&self, tree)?;
             },
+            Get(get_options) => {
+                get_options.run(&self, tree)?;
+            },
             Refresh => {
                 let node_str = fs::read_to_string(&self.file)
                     .or(Err(Error::PathNotExist(self.file.clone())))?;
@@ -84,7 +89,7 @@ impl InteractConfig {
                 // Clear after read to string successfully
                 tree.clear();
 
-                tree.insert_nodes_from_str(&node_str, self.file.clone(), None)?;
+                tree.insert_nodes_from_str(&node_str, self.file.clone(), None, &*crate::PRESERVED_KEYS)?;
             },
             Quit => return Ok(true),
         }
@@ -103,7 +108,7 @@ impl CommandlineOption for InteractOptions {
         let tree = Tree::new(&tree_config);
         let node_str = fs::read_to_string(&config.file)
             .or(Err(Error::PathNotExist(config.file.clone())))?;
-        tree.insert_nodes_from_str(&node_str, config.file.clone(), None)?;
+        tree.insert_nodes_from_str(&node_str, config.file.clone(), None, &*crate::PRESERVED_KEYS)?;
 
         let mut rl = rustyline::Editor::<()>::new();
         let mut line;

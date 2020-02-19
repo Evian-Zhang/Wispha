@@ -181,7 +181,8 @@ impl Tree {
     /// * Check if a direct loop exists, i.e. the `link_node`'s `target` is its `record_file`
     pub fn resolve_node<F>(&self,
                            node_path: &NodePath,
-                           resolve_handler: &F) -> Result<(), Error>
+                           resolve_handler: &F,
+                           preserved_keys: &Vec<&'static str>) -> Result<(), Error>
         where
             F: Fn(&LinkNode) -> Result<(PathBuf, String), Box<dyn error::Error>> {
         if let Some(node) = self.get_node(node_path) {
@@ -191,15 +192,16 @@ impl Tree {
                                                      .map(|parent| (parent, link_node.node_properties.name.clone()));
                 self.insert_nodes_from_str(&node_str,
                                            path,
-                                           parent_and_given_name)
+                                           parent_and_given_name,
+                                           preserved_keys)
                     .map_err(|de_error| Error::Custom(Box::new(de_error)))?;
                 // in case of `target` of `link_node` is still a link node
-                self.resolve_node(node_path, resolve_handler)?;
+                self.resolve_node(node_path, resolve_handler, preserved_keys)?;
             }
             Ok(())
         } else {
             if let Some(parent) = &node_path.parent() {
-                self.resolve_node(&parent, resolve_handler)?;
+                self.resolve_node(&parent, resolve_handler, preserved_keys)?;
                 if let Some(node) = self.get_node(node_path) {
                     if let Node::Link(link_node) = &*node.borrow() {
                         let (path, node_str) = resolve_handler(link_node).map_err(|error| Error::Custom(error))?;
@@ -207,10 +209,11 @@ impl Tree {
                                                              .map(|parent| (parent, link_node.node_properties.name.clone()));
                         self.insert_nodes_from_str(&node_str,
                                                    path,
-                                                   parent_and_given_name)
+                                                   parent_and_given_name,
+                                                   preserved_keys)
                             .map_err(|de_error| Error::Custom(Box::new(de_error)))?;
                         // in case of `target` of `link_node` is still a link node
-                        self.resolve_node(node_path, resolve_handler)?;
+                        self.resolve_node(node_path, resolve_handler, preserved_keys)?;
                     }
                     Ok(())
                 } else {
@@ -237,7 +240,8 @@ impl Tree {
     pub fn resolve_in_depth<F>(&self,
                                node_path: &NodePath,
                                depth: usize,
-                               resolve_handler: &F) -> Result<(), Error>
+                               resolve_handler: &F,
+                               preserved_keys: &Vec<&'static str>) -> Result<(), Error>
         where
             F: Fn(&LinkNode) -> Result<(PathBuf, String), Box<dyn error::Error>> {
         let node = self.get_node(node_path).ok_or(Error::PathNotFound(node_path.clone()))?;
@@ -246,7 +250,10 @@ impl Tree {
             Node::Direct(direct_node) => {
                 if depth > 0 {
                     for child in &direct_node.children {
-                        self.resolve_in_depth(child, depth - 1, resolve_handler)?;
+                        self.resolve_in_depth(child,
+                                              depth - 1,
+                                              resolve_handler,
+                                              preserved_keys)?;
                     }
                 }
             },
@@ -256,10 +263,12 @@ impl Tree {
                                                      .map(|parent| (parent, link_node.node_properties.name.clone()));
                 self.insert_nodes_from_str(&node_str,
                                            path,
-                                           parent_and_given_name)
+                                           parent_and_given_name,
+                                           preserved_keys)
                     .map_err(|de_error| Error::Custom(Box::new(de_error)))?;
                 // in case of `target` of `link_node` is still a link node
-                self.resolve_in_depth(node_path, depth, resolve_handler)?;
+                self.resolve_in_depth(node_path, depth, resolve_handler,
+                                      preserved_keys)?;
             }
         }
         Ok(())

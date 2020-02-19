@@ -121,7 +121,7 @@ impl CommandlineOption for LayoutOptions {
         let tree = Tree::new(&tree_config);
         let node_str = fs::read_to_string(&config.file)
             .or(Err(Error::PathNotExist(config.file.clone())))?;
-        tree.insert_nodes_from_str(&node_str, config.file.clone(), None)?;
+        tree.insert_nodes_from_str(&node_str, config.file.clone(), None, &*crate::PRESERVED_KEYS)?;
         let node_path = NodePath::from(&config.path, &tree)?;
         let layout_str = crate::layouter::LayoutManager::layout(&config.layout,
                                                                 &crate::layout_templates::layout_resolver,

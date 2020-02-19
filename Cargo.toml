@@ -12,3 +12,4 @@ edition = "2018"
 libwispha = { path = "libwispha" }
 structopt = "*"
 rustyline = "*"
+lazy_static = "*"
