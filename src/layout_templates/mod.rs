@@ -1,3 +1,4 @@
+pub mod plain;
 pub mod line;
 
 use libwispha::core::*;
@@ -46,6 +47,7 @@ impl fmt::Display for Error {
 
 pub fn layout_resolver(name: &str) -> Option<Box<dyn Layout>> {
     match name {
+        "plain" => Some(Box::new(plain::PlainLayout::new())),
         "line" => Some(Box::new(line::LineLayout::new())),
         _ => None
     }

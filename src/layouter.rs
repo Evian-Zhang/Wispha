@@ -10,7 +10,7 @@ pub struct LayoutInfo {
 
 /// Layout template
 pub trait Layout {
-    fn info() -> LayoutInfo;
+    fn info(&self) -> LayoutInfo;
 
     /// Display a tree layout relative to `node_path` in `depth` with `keys`.
     ///
