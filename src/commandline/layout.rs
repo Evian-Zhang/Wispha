@@ -51,7 +51,7 @@ impl LayoutConfig {
         let layout = if let Some(layout) = opt.layout {
             layout
         } else {
-            line::LineLayout::new().info().name.clone()
+            line::LineLayout::info().name.clone()
         };
 
         let project_name = if let Some(project_name) = opt.project_name {
@@ -123,13 +123,15 @@ impl CommandlineOption for LayoutOptions {
             .or(Err(Error::PathNotExist(config.file.clone())))?;
         tree.insert_nodes_from_str(&node_str, config.file.clone(), None, &*crate::PRESERVED_KEYS)?;
         let node_path = NodePath::from(&config.path, &tree)?;
-        let layout_str = crate::layouter::LayoutManager::layout(&config.layout,
-                                                                &crate::layout_templates::layout_resolver,
-                                                                &tree,
-                                                                &node_path,
-                                                                config.depth,
-                                                                &config.keys,
-                                                                config.hide_key)?;
+
+        let layout_manager = crate::layout_templates::LayoutManager::new();
+
+        let layout_str = layout_manager.layout(&config.layout,
+                                               &tree,
+                                               &node_path,
+                                               config.depth,
+                                               &config.keys,
+                                               config.hide_key)?;
         println!("{}", layout_str);
         Ok(())
     }

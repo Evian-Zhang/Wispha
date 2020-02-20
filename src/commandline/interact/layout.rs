@@ -1,6 +1,6 @@
 use crate::layout_templates::line;
+use crate::layout_templates::LayoutManager;
 use crate::layouter::Layout;
-use super::{InteractConfig, InteractOption};
 
 use libwispha::core::*;
 use structopt::StructOpt;
@@ -40,7 +40,7 @@ impl LayoutConfig {
         let layout = if let Some(layout) = layout_opt.layout {
             layout
         } else {
-            line::LineLayout::new().info().name.clone()
+            line::LineLayout::info().name.clone()
         };
 
         let path = if let Some(path) = layout_opt.path {
@@ -77,18 +77,17 @@ impl LayoutConfig {
     }
 }
 
-impl InteractOption for LayoutOptions {
-    fn run(self, _interact_conf: &InteractConfig, tree: &Tree) -> Result<(), Box<dyn error::Error>> {
+impl LayoutOptions {
+    pub fn run(self, tree: &Tree, manager: &LayoutManager) -> Result<(), Box<dyn error::Error>> {
         let config = LayoutConfig::from_opt(self)?;
 
         let node_path = NodePath::from(&config.path, &tree)?;
-        let layout_str = crate::layouter::LayoutManager::layout(&config.layout,
-                                                                &crate::layout_templates::layout_resolver,
-                                                                &tree,
-                                                                &node_path,
-                                                                config.depth,
-                                                                &config.keys,
-                                                                config.hide_key)?;
+        let layout_str = manager.layout(&config.layout,
+                                        &tree,
+                                        &node_path,
+                                        config.depth,
+                                        &config.keys,
+                                        config.hide_key)?;
         println!("{}", layout_str);
         Ok(())
     }

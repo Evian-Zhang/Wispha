@@ -1,5 +1,3 @@
-use super::{InteractConfig, InteractOption};
-
 use libwispha::core::{Tree, NodePath};
 use structopt::StructOpt;
 
@@ -16,8 +14,8 @@ pub struct GetOptions {
     path: String,
 }
 
-impl InteractOption for GetOptions {
-    fn run(self, _interact_conf: &InteractConfig, tree: &Tree) -> Result<(), Box<dyn error::Error>> {
+impl GetOptions {
+    pub fn run(self, tree: &Tree) -> Result<(), Box<dyn error::Error>> {
         let node_path = NodePath::from(&self.path, &tree)?;
         tree.resolve_node(&node_path, &crate::layout_templates::resolve_handler, &*crate::PRESERVED_KEYS)?;
 

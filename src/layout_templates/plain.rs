@@ -8,13 +8,8 @@ use std::error;
 pub struct PlainLayout { }
 
 impl PlainLayout {
-    pub fn new() -> PlainLayout {
-        PlainLayout { }
-    }
-
     // if `depth` < `max`, return `Some`, else return `None`
-    fn layout_helper(&self,
-                     tree: &Tree,
+    fn layout_helper(tree: &Tree,
                      node_path: &NodePath,
                      depth: usize,
                      max: usize,
@@ -53,7 +48,7 @@ impl PlainLayout {
             }
 
             let mut sub_lines = direct_node.children.iter().filter_map(|child_path| {
-                self.layout_helper(tree, child_path, depth + 1, max, keys, hide_key)
+                PlainLayout::layout_helper(tree, child_path, depth + 1, max, keys, hide_key)
             }).collect::<Vec<String>>();
 
             sub_lines.insert(0, line);
@@ -66,26 +61,25 @@ impl PlainLayout {
 }
 
 impl Layout for PlainLayout {
-    fn info(&self) -> LayoutInfo {
+    fn info() -> LayoutInfo {
         LayoutInfo {
             name: "plain".to_string(),
             version: "1.0".to_string()
         }
     }
 
-    fn layout(&self,
-              tree: &Tree,
+    fn layout(tree: &Tree,
               node_path: &NodePath,
               depth: usize,
               keys: &Vec<String>,
               hide_key: bool) -> Result<String, Box<dyn error::Error>> {
         tree.resolve_node(node_path, &resolve_handler, &*crate::PRESERVED_KEYS)?;
         tree.resolve_in_depth(node_path, depth, &resolve_handler, &*crate::PRESERVED_KEYS)?;
-        Ok(self.layout_helper(tree,
-                              node_path,
-                              0,
-                              depth,
-                              keys,
-                              hide_key).unwrap())
+        Ok(PlainLayout::layout_helper(tree,
+                                      node_path,
+                                      0,
+                                      depth,
+                                      keys,
+                                      hide_key).unwrap())
     }
 }

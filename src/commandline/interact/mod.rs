@@ -3,6 +3,7 @@ mod layout;
 mod get;
 
 use super::CommandlineOption;
+use crate::layout_templates::LayoutManager;
 
 use libwispha::core::*;
 use structopt::StructOpt;
@@ -27,10 +28,6 @@ pub struct InteractOptions {
 struct InteractConfig {
     project_name: String,
     file: PathBuf,
-}
-
-trait InteractOption {
-    fn run(self, interact_conf: &InteractConfig, tree: &Tree) -> Result<(), Box<dyn error::Error>>;
 }
 
 #[derive(StructOpt)]
@@ -70,17 +67,17 @@ impl InteractConfig {
         })
     }
 
-    fn run_helper(&self, line: &String, tree: &Tree) -> Result<bool, Box<dyn error::Error>> {
+    fn run_helper(&self, line: &String, tree: &Tree, manager: &LayoutManager) -> Result<bool, Box<dyn error::Error>> {
         use Subcommand::*;
 
         let args = commandline_parser::to_args(&line)?;
         let interact_opt = Subcommand::from_iter_safe(args)?;
         match interact_opt {
             Layout(layout_options) => {
-                layout_options.run(&self, tree)?;
+                layout_options.run(tree, manager)?;
             },
             Get(get_options) => {
-                get_options.run(&self, tree)?;
+                get_options.run(tree)?;
             },
             Refresh => {
                 let node_str = fs::read_to_string(&self.file)
@@ -110,6 +107,8 @@ impl CommandlineOption for InteractOptions {
             .or(Err(Error::PathNotExist(config.file.clone())))?;
         tree.insert_nodes_from_str(&node_str, config.file.clone(), None, &*crate::PRESERVED_KEYS)?;
 
+        let layout_manager = LayoutManager::new();
+
         let mut rl = rustyline::Editor::<()>::new();
         let mut line;
 
@@ -117,7 +116,7 @@ impl CommandlineOption for InteractOptions {
             line = rl.readline("(wispha) ");
             match &line {
                 Ok(line) => {
-                    match config.run_helper(&line, &tree) {
+                    match config.run_helper(&line, &tree, &layout_manager) {
                         Ok(will_quit) => if will_quit { break } else { continue },
                         Err(error) => eprintln!("{}", error)
                     }

@@ -8,13 +8,8 @@ use std::error;
 pub struct LineLayout { }
 
 impl LineLayout {
-    pub fn new() -> LineLayout {
-        LineLayout { }
-    }
-
     // if `depth` < `max`, return `Some`, else return `None`
-    fn layout_helper(&self,
-                     tree: &Tree,
+    fn layout_helper(tree: &Tree,
                      node_path: &NodePath,
                      depth: usize,
                      max: usize,
@@ -72,14 +67,14 @@ impl LineLayout {
                 let new_depth = depth + 1;
 
                 let mut strings = remain.iter().filter_map(|child_path| {
-                    self.layout_helper(tree, child_path, new_depth, max, finished, false, keys, hide_key)
+                    LineLayout::layout_helper(tree, child_path, new_depth, max, finished, false, keys, hide_key)
                 }).collect::<Vec<String>>();
 
                 if depth > 0 {
                     finished[depth] = true;
                 }
 
-                if let Some(last_string) = self.layout_helper(tree, last_child, new_depth, max, finished, true, keys, hide_key) {
+                if let Some(last_string) = LineLayout::layout_helper(tree, last_child, new_depth, max, finished, true, keys, hide_key) {
                     strings.push(last_string);
                 }
 
@@ -102,15 +97,14 @@ impl LineLayout {
 }
 
 impl Layout for LineLayout {
-    fn info(&self) -> LayoutInfo {
+    fn info() -> LayoutInfo {
         LayoutInfo {
             name: "line".to_string(),
             version: "1.0".to_string()
         }
     }
 
-    fn layout(&self,
-              tree: &Tree,
+    fn layout(tree: &Tree,
               node_path: &NodePath,
               depth: usize,
               keys: &Vec<String>,
@@ -118,13 +112,13 @@ impl Layout for LineLayout {
         tree.resolve_node(node_path, &resolve_handler, &*crate::PRESERVED_KEYS)?;
         tree.resolve_in_depth(node_path, depth, &resolve_handler, &*crate::PRESERVED_KEYS)?;
         let mut finished = vec![false; depth];
-        Ok(self.layout_helper(tree,
-                              node_path,
-                              0,
-                              depth,
-                              &mut finished,
-                              false,
-                              keys,
-                              hide_key).unwrap())
+        Ok(LineLayout::layout_helper(tree,
+                                     node_path,
+                                     0,
+                                     depth,
+                                     &mut finished,
+                                     false,
+                                     keys,
+                                     hide_key).unwrap())
     }
 }
