@@ -1,0 +1,19 @@
+{
+  "description": "Wispha library used by binary wispha",
+  "detail": "Provide APIs for serialization, deserialization, node-manipulation.",
+  "children": [
+    {
+      "name": "src",
+      "type": "Link",
+      "target": "src/LOOKME.json"
+    },
+    {
+      "name": "tests",
+      "type": "Link",
+      "target": "tests/LOOKME.json"
+    },
+    {
+      "name": "Cargo.toml"
+    }
+  ]
+}

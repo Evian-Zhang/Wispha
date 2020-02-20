@@ -1,4 +1,4 @@
-use crate::layout_templates::plain;
+use crate::layout_templates::line;
 use crate::layouter::Layout;
 use super::{InteractConfig, InteractOption};
 
@@ -40,7 +40,7 @@ impl LayoutConfig {
         let layout = if let Some(layout) = layout_opt.layout {
             layout
         } else {
-            plain::PlainLayout::new().info().name.clone()
+            line::LineLayout::new().info().name.clone()
         };
 
         let path = if let Some(path) = layout_opt.path {

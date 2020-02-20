@@ -1,0 +1,38 @@
+{
+  "description": "Source code of library wispha.",
+  "children": [
+    {
+      "name": "lib.rs",
+      "description": "Entry point for the library"
+    },
+    {
+      "name": "core.rs",
+      "description": "Define core structs"
+    },
+    {
+      "name": "strings.rs",
+      "description": "Consists of static str used by library"
+    },
+    {
+      "name": "manipulator.rs",
+      "description": "APIs for node manipulation"
+    },
+    {
+      "name": "serde",
+      "description": "APIs for serialization and deserialization",
+      "children": [
+        {
+          "name": "mod.rs"
+        },
+        {
+          "name": "ser.rs",
+          "description": "APIs for serialization"
+        },
+        {
+          "name": "de.rs",
+          "description": "APIs for deserialization"
+        }
+      ]
+    }
+  ]
+}

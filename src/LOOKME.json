@@ -1,0 +1,61 @@
+{
+  "description": "Source code of binary executable wispha.",
+  "children": [
+    {
+      "name": "main.rs",
+      "description": "Entry point of binary"
+    },
+    {
+      "name": "layouter.rs",
+      "description": "Define the `Layout` trait for templates"
+    },
+    {
+      "name": "layout_templates",
+      "description": "Templates that implements `Layout` trait",
+      "children": [
+        {
+          "name": "mod.rs",
+          "detail": "Define the `resolve_handler` for all templates."
+        },
+        {
+          "name": "line.rs",
+          "description": "Define the line layout."
+        }
+      ]
+    },
+    {
+      "name": "commandline",
+      "description": "Commandline interface",
+      "children": [
+        {
+          "name": "mod.rs"
+        },
+        {
+          "name": "layout.rs",
+          "description": "Layout subcommand"
+        },
+        {
+          "name": "interact",
+          "description": "Interact subcommand",
+          "children": [
+            {
+              "name": "mod.rs"
+            },
+            {
+              "name": "commandline_parser",
+              "description": "Used to parse the input in interact mode"
+            },
+            {
+              "name": "layout.rs",
+              "description": "Layout subcommand in interact mode"
+            },
+            {
+              "name": "get.rs",
+              "description": "Get subcommand in interact mode"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

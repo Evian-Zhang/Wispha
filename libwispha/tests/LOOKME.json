@@ -1,0 +1,13 @@
+{
+  "description": "unit tests",
+  "children": [
+    {
+      "name": "ser_test",
+      "description": "tests for serialization"
+    },
+    {
+      "name": "de_test",
+      "description": "tests for deserialization"
+    }
+  ]
+}

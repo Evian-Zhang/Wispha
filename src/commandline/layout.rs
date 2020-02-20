@@ -1,4 +1,4 @@
-use crate::layout_templates::plain;
+use crate::layout_templates::line;
 use crate::layouter::Layout;
 use super::CommandlineOption;
 
@@ -51,7 +51,7 @@ impl LayoutConfig {
         let layout = if let Some(layout) = opt.layout {
             layout
         } else {
-            plain::PlainLayout::new().info().name.clone()
+            line::LineLayout::new().info().name.clone()
         };
 
         let project_name = if let Some(project_name) = opt.project_name {

@@ -1,0 +1,18 @@
+{
+  "description": "Wispha project main folder",
+  "children": [
+    {
+      "name": "libwispha",
+      "type": "Link",
+      "target": "libwispha/LOOKME.json"
+    },
+    {
+      "name": "src",
+      "type": "Link",
+      "target": "src/LOOKME.json"
+    },
+    {
+      "name": "Cargo.toml"
+    }
+  ]
+}

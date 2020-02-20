@@ -5,11 +5,11 @@ use super::resolve_handler;
 
 use std::error;
 
-pub struct PlainLayout { }
+pub struct LineLayout { }
 
-impl PlainLayout {
-    pub fn new() -> PlainLayout {
-        PlainLayout { }
+impl LineLayout {
+    pub fn new() -> LineLayout {
+        LineLayout { }
     }
 
     // if `depth` < `max`, return `Some`, else return `None`
@@ -18,7 +18,7 @@ impl PlainLayout {
                      node_path: &NodePath,
                      depth: usize,
                      max: usize,
-                     finish_depth: usize,
+                     finished: &mut Vec<bool>,
                      is_last: bool,
                      keys: &Vec<String>,
                      hide_key: bool) -> Option<String> {
@@ -31,11 +31,12 @@ impl PlainLayout {
 
             // `depth == 0` means the node is at root
             if depth > 0 {
-                for _indent in 1..finish_depth {
-                    line += "    ";
-                }
-                for _indent in finish_depth..depth {
-                    line += "│   ";
+                for step in 1..depth {
+                    if finished[step - 1] {
+                        line += "    ";
+                    } else {
+                        line += "│   ";
+                    }
                 }
                 if is_last {
                     line += "└── ";
@@ -49,7 +50,7 @@ impl PlainLayout {
             if keys.len() == 1 {
                 let key = &keys[0];
                 if let Some(property) = direct_node.properties.get(key) {
-                    line += "\t";
+                    line += "\t\t";
                     if !hide_key {
                         line += key;
                         line += ": ";
@@ -59,7 +60,7 @@ impl PlainLayout {
             } else if keys.len() > 1 {
                 for key in keys {
                     if let Some(property) = direct_node.properties.get(key) {
-                        line += "\t";
+                        line += "\t\t";
                         line += key;
                         line += ": ";
                         line += property;
@@ -69,18 +70,22 @@ impl PlainLayout {
 
             let mut sub_lines = if let Some((last_child, remain)) = direct_node.children.split_last() {
                 let new_depth = depth + 1;
-                let new_finish_depth = if is_last && depth == finish_depth {
-                    finish_depth + 1
-                } else {
-                    finish_depth
-                };
 
                 let mut strings = remain.iter().filter_map(|child_path| {
-                    self.layout_helper(tree, child_path, new_depth, max, new_finish_depth, false, keys, hide_key)
+                    self.layout_helper(tree, child_path, new_depth, max, finished, false, keys, hide_key)
                 }).collect::<Vec<String>>();
 
-                if let Some(last_string) = self.layout_helper(tree, last_child, new_depth, max, new_finish_depth, true, keys, hide_key) {
+                if depth > 0 {
+                    finished[depth] = true;
+                }
+
+                if let Some(last_string) = self.layout_helper(tree, last_child, new_depth, max, finished, true, keys, hide_key) {
                     strings.push(last_string);
+                }
+
+                // Restore for next parent
+                if depth > 0 {
+                    finished[depth] = false;
                 }
                 strings
             } else {
@@ -96,16 +101,12 @@ impl PlainLayout {
     }
 }
 
-impl Layout for PlainLayout {
-    fn info(&self) -> LayoutInfo {
+impl Layout for LineLayout {
+    fn info() -> LayoutInfo {
         LayoutInfo {
-            name: "plain".to_string(),
+            name: "line".to_string(),
             version: "1.0".to_string()
         }
-    }
-
-    fn manual(&self) -> String {
-        "".to_string()
     }
 
     fn layout(&self,
@@ -116,11 +117,12 @@ impl Layout for PlainLayout {
               hide_key: bool) -> Result<String, Box<dyn error::Error>> {
         tree.resolve_node(node_path, &resolve_handler, &*crate::PRESERVED_KEYS)?;
         tree.resolve_in_depth(node_path, depth, &resolve_handler, &*crate::PRESERVED_KEYS)?;
+        let mut finished = vec![false; depth];
         Ok(self.layout_helper(tree,
                               node_path,
                               0,
                               depth,
-                              1,
+                              &mut finished,
                               false,
                               keys,
                               hide_key).unwrap())
