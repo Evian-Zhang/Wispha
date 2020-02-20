@@ -1,5 +1,6 @@
 pub mod plain;
 pub mod line;
+pub mod triangle;
 
 use libwispha::core::*;
 
@@ -44,6 +45,7 @@ impl LayoutManager {
         let mut manager = LayoutManager { templates: HashMap::new() };
         manager.register_template::<plain::PlainLayout>();
         manager.register_template::<line::LineLayout>();
+        manager.register_template::<triangle::TriangleLayout>();
         manager
     }
 

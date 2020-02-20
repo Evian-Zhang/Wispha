@@ -18,8 +18,16 @@
           "detail": "Define the `resolve_handler` for all templates."
         },
         {
+          "name": "plain.rs",
+          "description": "Define the plain layout."
+        },
+        {
           "name": "line.rs",
           "description": "Define the line layout."
+        },
+        {
+          "name": "triangle.rs",
+          "description": "Define the triangle layout."
         }
       ]
     },

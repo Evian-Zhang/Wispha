@@ -1,5 +1,5 @@
 {
-  "description": "unit tests",
+  "description": "integration tests",
   "children": [
     {
       "name": "ser_test",
