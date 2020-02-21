@@ -8,7 +8,7 @@ Wispha是一个可以轻松展示项目结构布局的命令行工具。
 
 如果wispha在你的路径中，那么请将本项目克隆至自己的电脑中，然后在该目录下输入命令
 
-```bash
+```shell
 wispha layout --file LOOKME.json --project-name Wispha
 ```
 
@@ -47,13 +47,13 @@ Wispha
 
 同时，你也可以使用交互模式获得更多的信息。只需输入
 
-```bash
+```shell
 wispha interact --file LOOKME.json --project-name Wispha
 ```
 
 然后就可以进入交互模式了。使用如下命令获得`src/main.rs`的更多信息：
 
-```bash
+```shell
 (wispha) get --key description --path /src/main.rs
 ```
 

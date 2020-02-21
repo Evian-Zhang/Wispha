@@ -2,7 +2,7 @@
 
 ![language](https://img.shields.io/badge/language-rust-orange.svg)
 
-Wispha is a commanline tool for easily displaying project layout.
+Wispha is a commandline tool for easily displaying project layout.
 
 Other versions:
 
@@ -12,7 +12,7 @@ Other versions:
 
 If you have wispha in path, clone this project and type the following command inside this directory:
 
-```bash
+```shell
 wispha layout --file LOOKME.json --project-name Wispha
 ```
 
@@ -51,13 +51,13 @@ Wispha
 
 And you can use interact mode to get more information. Just type
 
-```bash
+```shell
 wispha interact --file LOOKME.json --project-name Wispha
 ```
 
 Then you will get into interact mode. Use the following command to get more infomation of `src/main.rs`:
 
-```bash
+```shell
 (wispha) get --key description --path /src/main.rs
 ```
 
