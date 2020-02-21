@@ -18,7 +18,12 @@
       "name": "README.md"
     },
     {
-      "name": "LICENSE"
+      "name": "README-zh-CN.md",
+      "description": "Simplified Chinese version of README"
+    },
+    {
+      "name": "LICENSE",
+      "description": "MIT license"
     }
   ]
 }

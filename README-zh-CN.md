@@ -2,21 +2,17 @@
 
 ![language](https://img.shields.io/badge/language-rust-orange.svg)
 
-Wispha is a commanline tool for easily displaying project layout.
+Wispha是一个可以轻松展示项目结构布局的命令行工具。
 
-Other versions:
+## 用法
 
-* [简体中文](README-zh-CN.md)
-
-## Usage
-
-If you have wispha in path, clone this project and type the following command inside this directory:
+如果wispha在你的路径中，那么请将本项目克隆至自己的电脑中，然后在该目录下输入命令
 
 ```bash
 wispha layout --file LOOKME.json --project-name Wispha
 ```
 
-And you will see this project layout:
+然后就可以看到本项目的结构布局：
 
 ```
 Wispha
@@ -49,33 +45,33 @@ Wispha
 └── LICENSE
 ```
 
-And you can use interact mode to get more information. Just type
+同时，你也可以使用交互模式获得更多的信息。只需输入
 
 ```bash
 wispha interact --file LOOKME.json --project-name Wispha
 ```
 
-Then you will get into interact mode. Use the following command to get more infomation of `src/main.rs`:
+然后就可以进入交互模式了。使用如下命令获得`src/main.rs`的更多信息：
 
 ```bash
 (wispha) get --key description --path /src/main.rs
 ```
 
-You will get
+得到
 
 ```
 Entry point of binary
 ```
 
-and enter `quit` to quit interact mode.
+输入`quit`退出交互模式。
 
-For more documentation, please see wiki.
+请参看wiki查看更多指南。
 
-## Apply Wispha to your own project
+## 在你自己的项目中使用Wispha
 
-To apply Wispha to your own project, just add JSON files containing project information.
+如需在自己项目中使用Wispha, 只需添加包含项目布局信息的JSON文件即可。
 
-For example, let's look at this project's `LOOKME.json` (you can name this JSON file anything you want, and I prefer `LOOKME.json`):
+例如本项目的`LOOKME.json`文件（你可以使用任何名字命名这个JSON文件，只是我更喜欢`LOOKME.json`这个名字）：
 
 ```json
 {
@@ -109,10 +105,10 @@ For example, let's look at this project's `LOOKME.json` (you can name this JSON 
 }
 ```
 
-For a simple file, such as `LICENSE`, you can just add an object to `children` key's list, and `description` key is optional and you can name any key (for key's rule, see wiki) as you wish.
+对于一个简单的文件，比如`LICENSE`, 可以直接在`children` key对应的列表中添加一个对象。其中，`description` key不是必要的，同时你可以任意添加键（键的要求请参考wiki）。
 
-For a folder, if this folder contains many files and you don't want this to make your original `LOOKME.json` ugly, you can add `type` key with string value `Link`, and set its `target` to be the path of another file with the similar structure. Or you can simply add `children` to the object as [src/LOOKME.json](src/LOOKME.json) does.
+对于一个文件夹，如果该文件夹中包含了过多的文件，同时你并不想因此使`LOOKME.json`文件变得臃肿，你可以添加`type` key, 并将其值设置为字符串`Link`, 然后添加`target`键，其值为对应的JSON文件所在的路径。除此之外，你还可以直接在该对象下添加`children`，如[src/LOOKME.json](src/LOOKME.json).
 
-## Contributing to Wispha
+## 贡献
 
-Welcome to make issues and pull request.
+欢迎提issue和pull request.
