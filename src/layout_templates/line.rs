@@ -111,7 +111,7 @@ impl Layout for LineLayout {
               hide_key: bool) -> Result<String, Box<dyn error::Error>> {
         tree.resolve_node(node_path, &resolve_handler, &*crate::PRESERVED_KEYS)?;
         tree.resolve_in_depth(node_path, depth, &resolve_handler, &*crate::PRESERVED_KEYS)?;
-        let mut finished = vec![false; depth];
+        let mut finished = vec![false; depth + 1];
         Ok(LineLayout::layout_helper(tree,
                                      node_path,
                                      0,

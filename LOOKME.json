@@ -13,6 +13,12 @@
     },
     {
       "name": "Cargo.toml"
+    },
+    {
+      "name": "README.md"
+    },
+    {
+      "name": "LICENSE"
     }
   ]
 }
