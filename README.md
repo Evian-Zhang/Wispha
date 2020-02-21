@@ -1,6 +1,6 @@
 # Wispha
 
-![language](https://img.shields.io/badge/language-rust-orange.svg)
+![Build Status](https://travis-ci.org/Evian-Zhang/Wispha.svg?branch=master)![language](https://img.shields.io/badge/language-rust-orange.svg)
 
 Wispha is a commandline tool for easily displaying project layout.
 

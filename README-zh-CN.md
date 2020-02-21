@@ -1,6 +1,6 @@
 # Wispha
 
-![language](https://img.shields.io/badge/language-rust-orange.svg)
+![Build Status](https://travis-ci.org/Evian-Zhang/Wispha.svg?branch=master)![language](https://img.shields.io/badge/language-rust-orange.svg)
 
 Wispha是一个可以轻松展示项目结构布局的命令行工具。
 
