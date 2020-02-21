@@ -22,8 +22,12 @@
       "description": "Simplified Chinese version of README"
     },
     {
-      "name": "LICENSE",
+      "name": "LICENSE-MIT",
       "description": "MIT license"
+    },
+    {
+      "name": "LICENSE-APACHE",
+      "description": "Apache license version 2.0"
     }
   ]
 }
