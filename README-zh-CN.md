@@ -66,7 +66,7 @@ Entry point of binary
 
 输入`quit`退出交互模式。
 
-请参看wiki查看更多指南。
+请参看[wiki](https://github.com/Evian-Zhang/Wispha/wiki)查看更多指南。
 
 ## 在你自己的项目中使用Wispha
 
@@ -110,7 +110,7 @@ Entry point of binary
 }
 ```
 
-对于一个简单的文件，比如`LICENSE-MIT`, 可以直接在`children` key对应的列表中添加一个对象。其中，`description` key不是必要的，同时你可以任意添加键（键的要求请参考wiki）。
+对于一个简单的文件，比如`LICENSE-MIT`, 可以直接在`children` key对应的列表中添加一个对象。其中，`description` key不是必要的，同时你可以任意添加键（键的要求请参考[wiki](https://github.com/Evian-Zhang/Wispha/wiki)）。
 
 对于一个文件夹，如果该文件夹中包含了过多的文件，同时你并不想因此使`LOOKME.json`文件变得臃肿，你可以添加`type` key, 并将其值设置为字符串`Link`, 然后添加`target`键，其值为对应的JSON文件所在的路径。除此之外，你还可以直接在该对象下添加`children`，如[src/LOOKME.json](src/LOOKME.json).
 

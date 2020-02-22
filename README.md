@@ -70,7 +70,7 @@ Entry point of binary
 
 and enter `quit` to quit interact mode.
 
-For more documentation, please see wiki.
+For more documentation, please see [wiki](https://github.com/Evian-Zhang/Wispha/wiki).
 
 ## Apply Wispha to your own project
 
@@ -114,7 +114,7 @@ For example, let's look at this project's `LOOKME.json` (you can name this JSON 
 }
 ```
 
-For a simple file, such as `LICENSE-MIT`, you can just add an object to `children` key's list, and `description` key is optional and you can name any key (for key's rule, see wiki) as you wish.
+For a simple file, such as `LICENSE-MIT`, you can just add an object to `children` key's list, and `description` key is optional and you can name any key (for key's rule, see [wiki](https://github.com/Evian-Zhang/Wispha/wiki)) as you wish.
 
 For a folder, if this folder contains many files and you don't want this to make your original `LOOKME.json` ugly, you can add `type` key with string value `Link`, and set its `target` to be the path of another file with the similar structure. Or you can simply add `children` to the object as [src/LOOKME.json](src/LOOKME.json) does.
 
