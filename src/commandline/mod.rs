@@ -11,7 +11,10 @@ pub trait CommandlineOption {
 
 #[derive(StructOpt)]
 pub enum Commandline {
+    /// Display a project layout
     Layout(layout::LayoutOptions),
+
+    /// Enter interact mode
     Interact(interact::InteractOptions)
 }
 

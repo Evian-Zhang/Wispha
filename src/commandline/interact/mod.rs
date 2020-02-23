@@ -18,9 +18,11 @@ use std::fs;
 #[derive(StructOpt)]
 #[structopt(rename_all = "kebab-case")]
 pub struct InteractOptions {
+    /// Name for the project, used for the name of top directory. "." by default
     #[structopt(long, short = "n")]
     project_name: Option<String>,
 
+    /// File path for the project's root JSON file
     #[structopt(long, short)]
     file: Option<PathBuf>,
 }
@@ -33,8 +35,13 @@ struct InteractConfig {
 #[derive(StructOpt)]
 #[structopt(rename_all = "kebab-case")]
 enum Subcommand {
+    /// Display a project layout
     Layout(layout::LayoutOptions),
+
+    /// Get a key for a node
     Get(get::GetOptions),
+
+    /// Refresh nodes cache
     Refresh,
     Quit,
 }

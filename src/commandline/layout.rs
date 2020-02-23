@@ -14,24 +14,31 @@ use std::fs;
 #[derive(StructOpt)]
 #[structopt(rename_all = "kebab-case")]
 pub struct LayoutOptions {
+    /// Name for layout template. For now, it's "plain", "line" or "triangle". "line" by default
     #[structopt(long, short)]
     layout: Option<String>,
 
+    /// Name for the project, used for the name of top directory. "." by default
     #[structopt(long, short = "n")]
     project_name: Option<String>,
 
+    /// Node path for the node to be displayed at top level. "/" by default
     #[structopt(long, short)]
     path: Option<String>,
 
+    /// List of keys to be displayed. Empty list by default
     #[structopt(long, short, use_delimiter = true)]
     keys: Option<Vec<String>>,
 
+    /// If keys only have one element, whether to hide key's name. false by default
     #[structopt(long, short)]
     hide_key: bool,
 
+    /// File path for the project's root JSON file
     #[structopt(long, short)]
     file: Option<PathBuf>,
 
+    /// Project layout depth. 3 by default
     #[structopt(long, short)]
     depth: Option<usize>,
 }

@@ -10,6 +10,7 @@ pub struct GetOptions {
     #[structopt(long, short)]
     key: String,
 
+    /// Node path for the node
     #[structopt(long, short)]
     path: String,
 }
