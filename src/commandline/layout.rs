@@ -34,7 +34,7 @@ pub struct LayoutOptions {
     #[structopt(long, short)]
     hide_key: bool,
 
-    /// File path for the project's root JSON file
+    /// File path for the project's root JSON file. `LOOKME.json` By default
     #[structopt(long, short)]
     file: Option<PathBuf>,
 

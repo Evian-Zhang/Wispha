@@ -22,7 +22,7 @@ pub struct InteractOptions {
     #[structopt(long, short = "n")]
     project_name: Option<String>,
 
-    /// File path for the project's root JSON file
+    /// File path for the project's root JSON file. `LOOKME.json` By default
     #[structopt(long, short)]
     file: Option<PathBuf>,
 }
