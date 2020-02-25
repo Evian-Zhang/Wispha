@@ -14,7 +14,7 @@ impl TriangleLayout {
                      depth: usize,
                      max: usize,
                      keys: &Vec<String>,
-                     hide_key: bool) -> Option<String> {
+                     hide_key: bool) -> Option<Vec<(String, String)>> {
         if depth <= max {
             let mut line = String::new();
             // Can safely unwrap because of the effect of `resolve_node`
@@ -30,37 +30,55 @@ impl TriangleLayout {
 
             line += &direct_node.node_properties.name;
 
+            let mut appendix = String::new();
+
             if keys.len() == 1 {
                 let key = &keys[0];
                 if let Some(property) = direct_node.properties.get(key) {
-                    line += "\t\t";
                     if !hide_key {
-                        line += key;
-                        line += ": ";
+                        appendix += key;
+                        appendix += ": ";
                     }
-                    line += property;
+                    appendix += property;
                 }
             } else if keys.len() > 1 {
                 for key in keys {
                     if let Some(property) = direct_node.properties.get(key) {
-                        line += "\t\t";
-                        line += key;
-                        line += ": ";
-                        line += property;
+                        appendix += key;
+                        appendix += ": ";
+                        appendix += property;
+                        appendix += "\t\t";
                     }
                 }
             }
 
             let mut sub_lines = direct_node.children.iter().filter_map(|child_path| {
                 TriangleLayout::layout_helper(tree, child_path, depth + 1, max, keys, hide_key)
-            }).collect::<Vec<String>>();
+            }).flatten().collect::<Vec<(String, String)>>();
 
-            sub_lines.insert(0, line);
+            sub_lines.insert(0, (line, appendix));
 
-            Some(sub_lines.join("\n"))
+            Some(sub_lines)
         } else {
             None
         }
+    }
+
+    fn appender(strings_and_appendices: Vec<(String, String)>) -> String {
+        let max_len = strings_and_appendices.iter().fold(0, |pre_len, (name, _)| {
+            let len = name.chars().count();
+            if pre_len > len {
+                pre_len
+            } else {
+                len
+            }
+        });
+        let pre_len = max_len + 4;
+        strings_and_appendices.into_iter().map(|(name, appendix)| {
+            let len = name.chars().count();
+            let remain = pre_len - len;
+            name + &" ".repeat(remain) + &appendix
+        }).collect::<Vec<String>>().join("\n")
     }
 }
 
@@ -79,11 +97,12 @@ impl Layout for TriangleLayout {
               hide_key: bool) -> Result<String, Box<dyn error::Error>> {
         tree.resolve_node(node_path, &resolve_handler, &*crate::PRESERVED_KEYS)?;
         tree.resolve_in_depth(node_path, depth, &resolve_handler, &*crate::PRESERVED_KEYS)?;
-        Ok(TriangleLayout::layout_helper(tree,
-                                         node_path,
-                                         0,
-                                         depth,
-                                         keys,
-                                         hide_key).unwrap())
+        let strings_and_appendices = TriangleLayout::layout_helper(tree,
+                                                                   node_path,
+                                                                   0,
+                                                                   depth,
+                                                                   keys,
+                                                                   hide_key).unwrap();
+        Ok(TriangleLayout::appender(strings_and_appendices))
     }
 }
