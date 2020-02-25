@@ -9,6 +9,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 impl NodePath {
+    /// Create a root node path
     pub fn new(tree: &Tree) -> NodePath {
         NodePath {
             components: vec![],
@@ -16,10 +17,14 @@ impl NodePath {
         }
     }
 
+    /// Convert the node path to an absolute unix-style path string
     pub fn to_string(&self) -> String {
         format!("{root}{components}", root=ROOT, components=self.components.join(PATH_SEPARATOR))
     }
 
+    /// Convert an absolute unix-style path string to node path.
+    ///
+    /// If path string is not absolute, return `Error::NodePathMustBeAbsolute`
     pub fn from(raw_path: &String, tree: &Tree) -> Result<NodePath, Error> {
         let mut path = raw_path.clone();
         if path.starts_with("/") {
@@ -41,6 +46,7 @@ impl NodePath {
         }
     }
 
+    /// Push a component to the node path
     pub fn push(&self, component: String) -> NodePath {
         let mut components = self.components.clone();
         components.push(component);
@@ -50,6 +56,7 @@ impl NodePath {
         }
     }
 
+    /// The parent node path of current node path. Return `None` if current node path is root
     pub fn parent(&self) -> Option<NodePath> {
         let mut components = self.components.clone();
         if let Some(_) = components.pop() {
@@ -62,6 +69,7 @@ impl NodePath {
         }
     }
 
+    /// Return the last component of current node path. Return `None` if current node path is root
     pub fn name(&self) -> Option<String> {
         self.components.last().cloned()
     }

@@ -1,7 +1,7 @@
 [package]
 name = "wispha"
 version = "0.1.0"
-authors = ["Evian-Zhang <evianzhang1999@163.com>"]
+authors = ["Evian Zhang <evianzhang1999@gmail.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
