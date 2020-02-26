@@ -8,11 +8,26 @@ Other versions:
 
 * [简体中文](README-zh-CN.md)
 
+## Installation
+
+### Windows
+
+### macOS
+
+You can use homebrew to install wispha:
+
+```shell script
+brew tap Evian-Zhang/Wispha
+brew install wispha
+```
+
+### Linux
+
 ## Usage
 
 If you have wispha in path, clone this project and type the following command inside this directory:
 
-```shell
+```shell script
 wispha layout --file LOOKME.json --project-name Wispha
 ```
 
@@ -52,13 +67,13 @@ Wispha
 
 And you can use interact mode to get more information. Just type
 
-```shell
+```shell script
 wispha interact --file LOOKME.json --project-name Wispha
 ```
 
 Then you will get into interact mode. Use the following command to get more infomation of `src/main.rs`:
 
-```shell
+```shell script
 (wispha) get --key description --path /src/main.rs
 ```
 
@@ -120,4 +135,4 @@ For a folder, if this folder contains many files and you don't want this to make
 
 ## Contributing to Wispha
 
-Welcome to make issues and pull request.
+Welcome to open issues or make pull request.

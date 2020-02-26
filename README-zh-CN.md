@@ -4,6 +4,21 @@
 
 Wispha是一个可以轻松展示项目结构布局的命令行工具。
 
+## 安装
+
+### Windows
+
+### macOS
+
+您可以使用homebrew进行下载：
+
+```shell script
+brew tap Evian-Zhang/Wispha
+brew install wispha
+```
+
+### Linux
+
 ## 用法
 
 如果wispha在你的路径中，那么请将本项目克隆至自己的电脑中，然后在该目录下输入命令
