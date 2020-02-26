@@ -67,21 +67,16 @@ impl LineLayout {
             let mut sub_lines = if let Some((last_child, remain)) = direct_node.children.split_last() {
                 let new_depth = depth + 1;
 
+                if depth > 0 {
+                    finished[depth - 1] = is_last;
+                }
+
                 let mut strings = remain.iter().filter_map(|child_path| {
                     LineLayout::layout_helper(tree, child_path, new_depth, max, finished, false, keys, hide_key)
                 }).flatten().collect::<Vec<(String, String)>>();
 
-                if depth > 0 {
-                    finished[depth] = true;
-                }
-
                 if let Some(mut last_string) = LineLayout::layout_helper(tree, last_child, new_depth, max, finished, true, keys, hide_key) {
                     strings.append(&mut last_string);
-                }
-
-                // Restore for next parent
-                if depth > 0 {
-                    finished[depth] = false;
                 }
                 strings
             } else {
