@@ -1,5 +1,5 @@
 use libwispha::core::*;
-use libwispha::serde::de::*;
+use libwispha::serde::de::Error;
 
 use std::path::PathBuf;
 

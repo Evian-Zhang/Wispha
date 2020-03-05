@@ -1,5 +1,5 @@
 use libwispha::core::*;
-use libwispha::serde::ser::*;
+use libwispha::serde::ser::Error;
 
 use std::rc::Rc;
 use std::cell::RefCell;

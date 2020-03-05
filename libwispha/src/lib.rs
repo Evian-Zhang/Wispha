@@ -8,5 +8,5 @@
 
 pub mod core;
 pub mod serde;
-pub mod manipulator;
-pub(crate) mod strings;
+mod manipulator;
+mod strings;

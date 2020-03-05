@@ -1,3 +1,5 @@
+//! Defines the core structs in Wispha library.
+
 use std::collections::HashMap;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
