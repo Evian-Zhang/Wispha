@@ -18,8 +18,8 @@ name = "libwispha"
 path = "src/lib.rs"
 
 [dependencies]
-serde = { version = "*", features = ["derive", "rc"] }
-serde_json = "*"
+serde = { version = "1.0", features = ["derive", "rc"] }
+serde_json = "1.0"
 
 [dev-dependencies]
-maplit = "*"
+maplit = "1.0"
