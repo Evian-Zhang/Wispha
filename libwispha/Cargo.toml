@@ -3,6 +3,12 @@ name = "libwispha"
 version = "0.1.0"
 authors = ["Evian-Zhang <evianzhang1999@163.com>"]
 edition = "2018"
+license = "APACHE AND MIT"
+homepage = "https://github.com/Evian-Zhang/Wispha/tree/master/libwispha"
+repository = "https://github.com/Evian-Zhang/Wispha/tree/master/libwispha"
+documentation = "https://docs.rs/libwispha"
+readme = "README.md"
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
