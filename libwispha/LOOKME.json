@@ -13,7 +13,16 @@
       "target": "tests/LOOKME.json"
     },
     {
-      "name": "Cargo.toml"
+      "name": "Cargo.toml",
+      "description": "Manifest file for cargo to run"
+    },
+    {
+      "name": "LICENSE-MIT",
+      "description": "MIT license"
+    },
+    {
+      "name": "LICENSE-APACHE",
+      "description": "Apache license version 2.0"
     }
   ]
 }

@@ -8,9 +8,17 @@ Other versions:
 
 * [简体中文](README-zh-CN.md)
 
+
+
+## Why Wispha
+
+With more and more projects becoming open source, we may meet many big, complicated projects, which may have hundreds of thoudsands of files and directories. However, many projects don't have detailed descriptions of those files and directories, which makes us difficult to read the source code. And for those who have, the display of those descriptions is not standardized. So I want to use this tool to help.
+
 ## Installation
 
 ### Windows
+
+Install from [latest release](https://github.com/Evian-Zhang/Wispha/releases/latest/download/wispha-win10.tar.gz).
 
 ### macOS
 
@@ -21,48 +29,61 @@ brew tap Evian-Zhang/Wispha
 brew install wispha
 ```
 
-### Linux
+### Debian/Ubuntu
+
+Install the deb file from [latest release](https://github.com/Evian-Zhang/Wispha/releases/latest/download/wispha.deb).
+
+### Build from source
+
+Make sure your rust is latest stable. Clone this repository, and inside the directory:
+
+```shell script
+cargo build --release
+```
 
 ## Usage
 
 If you have wispha in path, clone this project and type the following command inside this directory:
 
 ```shell script
-wispha layout --file LOOKME.json --project-name Wispha
+wispha layout --project-name Wispha --keys description --hide-key
 ```
 
 And you will see this project layout:
 
 ```
-Wispha
-├── libwispha
-│   ├── src
-│   │   ├── lib.rs
-│   │   ├── core.rs
-│   │   ├── strings.rs
-│   │   ├── manipulator.rs
-│   │   └── serde
-│   ├── tests
-│   │   ├── ser_test
-│   │   └── de_test
-│   └── Cargo.toml
-├── src
-│   ├── main.rs
-│   ├── layouter.rs
-│   ├── layout_templates
-│   │   ├── mod.rs
-│   │   ├── plain.rs
-│   │   ├── line.rs
-│   │   └── triangle.rs
-│   └── commandline
-│       ├── mod.rs
-│       ├── layout.rs
-│       └── interact
-├── Cargo.toml
-├── README.md
-├── README-zh-CN.md
-├── LICENSE-MIT
-└── LICENSE-APACHE
+Wispha                        Wispha project main folder
+├── libwispha                 Wispha library used by binary wispha
+│   ├── src                   Source code of library wispha.
+│   │   ├── lib.rs            Entry point for the library
+│   │   ├── core.rs           Define core structs
+│   │   ├── strings.rs        Consists of static str used by library
+│   │   ├── manipulator.rs    APIs for node manipulation
+│   │   └── serde             APIs for serialization and deserialization
+│   ├── tests                 integration tests
+│   │   ├── ser_test          tests for serialization
+│   │   └── de_test           tests for deserialization
+│   ├── Cargo.toml            Manifest file for cargo to run
+│   ├── LICENSE-MIT           MIT license
+│   └── LICENSE-APACHE        Apache license version 2.0
+├── src                       Source code of binary executable wispha.
+│   ├── main.rs               Entry point of binary
+│   ├── layouter.rs           Define the `Layout` trait for templates
+│   ├── layout_templates      Templates that implements `Layout` trait
+│   │   ├── mod.rs            
+│   │   ├── plain.rs          Define the plain layout.
+│   │   ├── line.rs           Define the line layout.
+│   │   └── triangle.rs       Define the triangle layout.
+│   └── commandline           Commandline interface
+│       ├── mod.rs            
+│       ├── layout.rs         Layout subcommand
+│       └── interact          Interact subcommand
+├── Cargo.toml                Manifest file for cargo to run
+├── README.md                 
+├── README-zh-CN.md           Simplified Chinese version of README
+├── LICENSE-MIT               MIT license
+├── LICENSE-APACHE            Apache license version 2.0
+└── .travis.yml               File for Travis CI to run
 ```
 
 And you can use interact mode to get more information. Just type
@@ -108,7 +129,8 @@ For example, let's look at this project's `LOOKME.json` (you can name this JSON 
       "target": "src/LOOKME.json"
     },
     {
-      "name": "Cargo.toml"
+      "name": "Cargo.toml",
+      "description": "Manifest file for cargo to run"
     },
     {
       "name": "README.md"
@@ -124,6 +146,10 @@ For example, let's look at this project's `LOOKME.json` (you can name this JSON 
     {
       "name": "LICENSE-APACHE",
       "description": "Apache license version 2.0"
+    },
+    {
+      "name": ".travis.yml",
+      "description": "File for Travis CI to run"
     }
   ]
 }

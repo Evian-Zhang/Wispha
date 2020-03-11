@@ -4,9 +4,15 @@
 
 Wispha是一个可以轻松展示项目结构布局的命令行工具。
 
+## 为什么使用Wispha
+
+随着越来越多的项目开源，我们可以接触到许多大型的、复杂的项目。这些项目可能会有成百上千个文件、目录。但是，许多项目对于这些文件和目录并没有详细的说明，让我们阅读源码很困难。而那些有详细说明的项目，其展示这些说明的方法也并不统一。因此，我希望用这个工具来改善这一现状。
+
 ## 安装
 
 ### Windows
+
+您可以直接下载[最新的release](https://github.com/Evian-Zhang/Wispha/releases/latest/download/wispha-win10.tar.gz).
 
 ### macOS
 
@@ -17,48 +23,61 @@ brew tap Evian-Zhang/Wispha
 brew install wispha
 ```
 
-### Linux
+### Debian/Ubuntu
+
+您可以直接下载[最新的release](https://github.com/Evian-Zhang/Wispha/releases/latest/download/wispha.deb).
+
+### 从源码编译
+
+请确保您电脑中的Rust是最新的stable版本。将本仓库克隆至本地，然后在其目录下使用
+
+```shell script
+cargo build --release
+```
 
 ## 用法
 
 如果wispha在你的路径中，那么请将本项目克隆至自己的电脑中，然后在该目录下输入命令
 
-```shell
-wispha layout --file LOOKME.json --project-name Wispha
+```shell script
+wispha layout --project-name Wispha --keys description --hide-key
 ```
 
 然后就可以看到本项目的结构布局：
 
 ```
-Wispha
-├── libwispha
-│   ├── src
-│   │   ├── lib.rs
-│   │   ├── core.rs
-│   │   ├── strings.rs
-│   │   ├── manipulator.rs
-│   │   └── serde
-│   ├── tests
-│   │   ├── ser_test
-│   │   └── de_test
-│   └── Cargo.toml
-├── src
-│   ├── main.rs
-│   ├── layouter.rs
-│   ├── layout_templates
-│   │   ├── mod.rs
-│   │   ├── plain.rs
-│   │   ├── line.rs
-│   │   └── triangle.rs
-│   └── commandline
-│       ├── mod.rs
-│       ├── layout.rs
-│       └── interact
-├── Cargo.toml
-├── README.md
-├── README-zh-CN.md
-├── LICENSE-MIT
-└── LICENSE-APACHE
+Wispha                        Wispha project main folder
+├── libwispha                 Wispha library used by binary wispha
+│   ├── src                   Source code of library wispha.
+│   │   ├── lib.rs            Entry point for the library
+│   │   ├── core.rs           Define core structs
+│   │   ├── strings.rs        Consists of static str used by library
+│   │   ├── manipulator.rs    APIs for node manipulation
+│   │   └── serde             APIs for serialization and deserialization
+│   ├── tests                 integration tests
+│   │   ├── ser_test          tests for serialization
+│   │   └── de_test           tests for deserialization
+│   ├── Cargo.toml            Manifest file for cargo to run
+│   ├── LICENSE-MIT           MIT license
+│   └── LICENSE-APACHE        Apache license version 2.0
+├── src                       Source code of binary executable wispha.
+│   ├── main.rs               Entry point of binary
+│   ├── layouter.rs           Define the `Layout` trait for templates
+│   ├── layout_templates      Templates that implements `Layout` trait
+│   │   ├── mod.rs            
+│   │   ├── plain.rs          Define the plain layout.
+│   │   ├── line.rs           Define the line layout.
+│   │   └── triangle.rs       Define the triangle layout.
+│   └── commandline           Commandline interface
+│       ├── mod.rs            
+│       ├── layout.rs         Layout subcommand
+│       └── interact          Interact subcommand
+├── Cargo.toml                Manifest file for cargo to run
+├── README.md                 
+├── README-zh-CN.md           Simplified Chinese version of README
+├── LICENSE-MIT               MIT license
+├── LICENSE-APACHE            Apache license version 2.0
+└── .travis.yml               File for Travis CI to run
 ```
 
 同时，你也可以使用交互模式获得更多的信息。只需输入
@@ -104,7 +123,8 @@ Entry point of binary
       "target": "src/LOOKME.json"
     },
     {
-      "name": "Cargo.toml"
+      "name": "Cargo.toml",
+      "description": "Manifest file for cargo to run"
     },
     {
       "name": "README.md"
@@ -120,6 +140,10 @@ Entry point of binary
     {
       "name": "LICENSE-APACHE",
       "description": "Apache license version 2.0"
+    },
+    {
+      "name": ".travis.yml",
+      "description": "File for Travis CI to run"
     }
   ]
 }

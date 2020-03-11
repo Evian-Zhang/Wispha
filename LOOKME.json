@@ -12,7 +12,8 @@
       "target": "src/LOOKME.json"
     },
     {
-      "name": "Cargo.toml"
+      "name": "Cargo.toml",
+      "description": "Manifest file for cargo to run"
     },
     {
       "name": "README.md"
@@ -28,6 +29,10 @@
     {
       "name": "LICENSE-APACHE",
       "description": "Apache license version 2.0"
+    },
+    {
+      "name": ".travis.yml",
+      "description": "File for Travis CI to run"
     }
   ]
 }
