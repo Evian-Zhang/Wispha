@@ -12,7 +12,7 @@ Wispha是一个可以轻松展示项目结构布局的命令行工具。
 
 ### Windows
 
-您可以直接下载[最新的release](https://github.com/Evian-Zhang/Wispha/releases/latest/download/wispha-win10.tar.gz).
+您可以直接下载[最新的release](https://github.com/Evian-Zhang/Wispha/releases/latest/download/wispha-installer.msi).
 
 ### macOS
 

@@ -18,7 +18,7 @@ With more and more projects becoming open source, we may meet many big, complica
 
 ### Windows
 
-Install from [latest release](https://github.com/Evian-Zhang/Wispha/releases/latest/download/wispha-win10.tar.gz).
+Install the msi file from [latest release](https://github.com/Evian-Zhang/Wispha/releases/latest/download/wispha-installer.msi).
 
 ### macOS
 
