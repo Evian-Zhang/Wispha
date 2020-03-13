@@ -33,6 +33,10 @@
     {
       "name": ".travis.yml",
       "description": "File for Travis CI to run"
+    },
+    {
+      "name": "Wispha-supported.svg",
+      "description": "Project badge"
     }
   ]
 }

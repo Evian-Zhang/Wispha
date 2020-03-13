@@ -1,6 +1,6 @@
 # Wispha
 
-![Build Status](https://travis-ci.org/Evian-Zhang/Wispha.svg?branch=master)![language](https://img.shields.io/badge/language-rust-orange.svg)
+![wispha](Wispha-supported.svg)![Build Status](https://travis-ci.org/Evian-Zhang/Wispha.svg?branch=master)![language](https://img.shields.io/badge/language-rust-orange.svg)
 
 Wispha是一个可以轻松展示项目结构布局的命令行工具。
 
@@ -77,7 +77,8 @@ Wispha                        Wispha project main folder
 ├── README-zh-CN.md           Simplified Chinese version of README
 ├── LICENSE-MIT               MIT license
 ├── LICENSE-APACHE            Apache license version 2.0
-└── .travis.yml               File for Travis CI to run
+├── .travis.yml               File for Travis CI to run
+└── Wispha-supported.svg      Project badge
 ```
 
 同时，你也可以使用交互模式获得更多的信息。只需输入
@@ -144,6 +145,10 @@ Entry point of binary
     {
       "name": ".travis.yml",
       "description": "File for Travis CI to run"
+    },
+    {
+      "name": "Wispha-supported.svg",
+      "description": "Project badge"
     }
   ]
 }
@@ -152,6 +157,12 @@ Entry point of binary
 对于一个简单的文件，比如`LICENSE-MIT`, 可以直接在`children` key对应的列表中添加一个对象。其中，`description` key不是必要的，同时你可以任意添加键（键的要求请参考[wiki](https://github.com/Evian-Zhang/Wispha/wiki)）。
 
 对于一个文件夹，如果该文件夹中包含了过多的文件，同时你并不想因此使`LOOKME.json`文件变得臃肿，你可以添加`type` key, 并将其值设置为字符串`Link`, 然后添加`target`键，其值为对应的JSON文件所在的路径。除此之外，你还可以直接在该对象下添加`children`，如[src/LOOKME.json](src/LOOKME.json).
+
+如果您的项目包含了正确的JSON文件，支持Wispha，您可以在项目的README中加一个![wispha](Wispha-supported.svg)的徽标，其markdown代码为
+
+```markdown
+![wispha](https://www.github.com/Evian-Zhang/Wispha/blob/master/Wispha-supported.svg)
+```
 
 ## 贡献
 

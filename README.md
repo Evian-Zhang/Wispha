@@ -1,6 +1,6 @@
 # Wispha
 
-![Build Status](https://travis-ci.org/Evian-Zhang/Wispha.svg?branch=master)![language](https://img.shields.io/badge/language-rust-orange.svg)
+![wispha](Wispha-supported.svg)![Build Status](https://travis-ci.org/Evian-Zhang/Wispha.svg?branch=master)![language](https://img.shields.io/badge/language-rust-orange.svg)
 
 Wispha is a commandline tool for easily displaying project layout.
 
@@ -83,7 +83,8 @@ Wispha                        Wispha project main folder
 ├── README-zh-CN.md           Simplified Chinese version of README
 ├── LICENSE-MIT               MIT license
 ├── LICENSE-APACHE            Apache license version 2.0
-└── .travis.yml               File for Travis CI to run
+├── .travis.yml               File for Travis CI to run
+└── Wispha-supported.svg      Project badge
 ```
 
 And you can use interact mode to get more information. Just type
@@ -150,6 +151,10 @@ For example, let's look at this project's `LOOKME.json` (you can name this JSON 
     {
       "name": ".travis.yml",
       "description": "File for Travis CI to run"
+    },
+    {
+      "name": "Wispha-supported.svg",
+      "description": "Project badge"
     }
   ]
 }
@@ -158,6 +163,12 @@ For example, let's look at this project's `LOOKME.json` (you can name this JSON 
 For a simple file, such as `LICENSE-MIT`, you can just add an object to `children` key's list, and `description` key is optional and you can name any key (for key's rule, see [wiki](https://github.com/Evian-Zhang/Wispha/wiki)) as you wish.
 
 For a folder, if this folder contains many files and you don't want this to make your original `LOOKME.json` ugly, you can add `type` key with string value `Link`, and set its `target` to be the path of another file with the similar structure. Or you can simply add `children` to the object as [src/LOOKME.json](src/LOOKME.json) does.
+
+If your project supports Wispha, which contains the proper JSON files, you can add a badge ![wispha](Wispha-supported.svg) to your project's README by:
+
+```markdown
+![wispha](https://www.github.com/Evian-Zhang/Wispha/blob/master/Wispha-supported.svg)
+```
 
 ## Contributing to Wispha
 
