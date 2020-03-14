@@ -4,6 +4,7 @@ use std::error;
 
 mod layout;
 mod interact;
+mod generate;
 
 pub trait CommandlineOption {
     fn run(self) -> Result<(), Box<dyn error::Error>>;
@@ -14,6 +15,9 @@ pub enum Commandline {
     /// Display a project layout
     Layout(layout::LayoutOptions),
 
+    /// Generate default JSON files
+    Generate(generate::GenerateOptions),
+
     /// Enter interact mode
     Interact(interact::InteractOptions)
 }
@@ -23,6 +27,7 @@ impl CommandlineOption for Commandline {
         use Commandline::*;
         match self {
             Layout(layout_options) => layout_options.run(),
+            Generate(generate_options) => generate_options.run(),
             Interact(interact_options) => interact_options.run(),
         }
     }

@@ -13,3 +13,4 @@ libwispha = { path = "libwispha" }
 structopt = "*"
 rustyline = "*"
 lazy_static = "*"
+serde_json = "*"
