@@ -70,6 +70,9 @@ impl CommandlineOption for GenerateOptions {
 }
 
 fn generate_file(config: GenerateConfig) -> Result<()> {
+    if !config.path.is_dir() {
+        return Err(Error::PathNotDir(config.path.clone()));
+    }
     let root = config.path.clone();
     let project_name = root.file_name()
         .map(|os_str| os_str.to_str().unwrap())
@@ -167,7 +170,8 @@ fn generate_direct_node(tree: &Tree,
 pub enum Error {
     CannotRead((PathBuf, io::Error)),
     CannotWrite((PathBuf, io::Error)),
-    CurrentDirectoryNotAvailable(io::Error)
+    CurrentDirectoryNotAvailable(io::Error),
+    PathNotDir(PathBuf),
 }
 
 impl error::Error for Error {}
@@ -179,6 +183,7 @@ impl fmt::Display for Error {
             CannotRead((path, io_error)) => format!("Cannot open {}: {}", path.to_str().unwrap(), io_error),
             CannotWrite((path, io_error)) => format!("Cannot write to {}: {}", path.to_str().unwrap(), io_error),
             CurrentDirectoryNotAvailable(io_error) => format!("Can not access current directory: {}", io_error),
+            PathNotDir(path) => format!("{} is not a directory", path.to_str().unwrap()),
         };
         write!(f, "{}", message)
     }
